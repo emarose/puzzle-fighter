@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://wp7y0kpo8737"]
+
+[ext_resource type="PackedScene" uid="uid://b1x3ryrddx60e" path="res://scenes/battle/Battle.tscn" id="1_8ff0d"]
+[ext_resource type="Script" uid="uid://df85on5031pdd" path="res://scripts/core/Main.gd" id="2_1fk3c"]
+
+[node name="Main" type="Node" unique_id=464124731]
+script = ExtResource("2_1fk3c")
+
+[node name="Battle" parent="." unique_id=1594414216 instance=ExtResource("1_8ff0d")]

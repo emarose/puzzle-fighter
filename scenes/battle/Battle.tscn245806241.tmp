@@ -1,0 +1,28 @@
+[gd_scene format=3 uid="uid://b1x3ryrddx60e"]
+
+[ext_resource type="Script" uid="uid://byxxo2484pgyy" path="res://scripts/battle/BattleController.gd" id="1_4j9m3"]
+[ext_resource type="Script" uid="uid://bgieco6y1jv8s" path="res://scripts/core/BattleManager.gd" id="2_qp3x8"]
+[ext_resource type="Script" uid="uid://c5cdebp4b5n0j" path="res://scripts/core/BoardManager.gd" id="3_9l2t1"]
+
+[node name="Battle" type="Node2D" unique_id=1629196341]
+script = ExtResource("1_4j9m3")
+
+[node name="BattleManager" type="Node" parent="." unique_id=1540546550]
+script = ExtResource("2_qp3x8")
+
+[node name="BoardManager" type="Node" parent="." unique_id=647971918]
+script = ExtResource("3_9l2t1")
+
+[node name="Background" type="ColorRect" parent="." unique_id=1191123299]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -270.0
+offset_top = -480.0
+offset_right = 270.0
+offset_bottom = 480.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.08, 0.13, 0.17, 1)
