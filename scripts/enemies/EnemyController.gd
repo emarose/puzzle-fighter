@@ -29,6 +29,26 @@ func is_enemy_ready() -> bool:
 func get_current_attack_preview() -> String:
 	return current_attack_preview
 
+func apply_attack_event(event: CombatManager.AttackEvent) -> bool:
+	if event == null:
+		return false
+
+	if event.target == "enemy":
+		combat_manager.register_actor(enemy_state.actor_id, enemy_state.max_hp, enemy_state.current_hp)
+		var enemy_hp_after: int = combat_manager.apply_damage(enemy_state.actor_id, event.amount)
+		enemy_state.current_hp = enemy_hp_after
+		current_attack_preview = "Enemy intent: %s strike for %d" % [event.color.capitalize(), event.amount]
+		return true
+
+	if event.target == "player":
+		combat_manager.register_actor(player_state.actor_id, player_state.max_hp, player_state.current_hp)
+		var player_hp_after: int = combat_manager.apply_damage(player_state.actor_id, event.amount)
+		player_state.current_hp = player_hp_after
+		current_attack_preview = "Enemy intent: %s burst for %d" % [event.color.capitalize(), event.amount]
+		return true
+
+	return false
+
 func execute_turn() -> bool:
 	if battle_controller == null:
 		return false
@@ -41,8 +61,8 @@ func execute_turn() -> bool:
 	var success: bool = true
 
 	for action in actions:
-		var name: String = action.get("name", "")
-		match name:
+		var action_name: String = action.get("name", "")
+		match action_name:
 			"spawn":
 				current_attack_preview = "Enemy intent: spawn %s piece" % str(action.get("color", "green"))
 				if not battle_controller.has_method("spawn_enemy_piece"):

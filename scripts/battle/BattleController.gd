@@ -13,6 +13,7 @@ var active_piece: Piece
 var event_bus: EventBus
 var fall_timer: float = 0.0
 var next_color_index: int = 0
+var combat_manager: CombatManager = CombatManager.new()
 const SPAWN_COLORS: Array = ["red", "blue", "green", "yellow"]
 
 func _ready() -> void:
@@ -52,7 +53,7 @@ func _process(delta: float) -> void:
 		if not try_move(Vector2i(0, 1)):
 			lock_active_piece()
 
-func _on_battle_state_changed(old_state: int, new_state: int) -> void:
+func _on_battle_state_changed(_old_state: int, new_state: int) -> void:
 	if new_state == BattleManager.BattleState.ENEMY_ACTION:
 		if enemy_controller == null or not enemy_controller.has_method("execute_turn"):
 			if battle_manager != null:
@@ -85,6 +86,71 @@ func _refresh_board_views() -> void:
 	var enemy_board_view: Node2D = get_node_or_null("EnemyBoardContainer/BoardView")
 	if enemy_board_view != null:
 		enemy_board_view.queue_redraw()
+
+func _create_match_attack_event(cascade_result: CascadeManager.CascadeResult = null) -> CombatManager.AttackEvent:
+	if board_manager == null:
+		return CombatManager.AttackEvent.new("player", "enemy", "red", 0)
+
+	var match_manager: MatchManager = MatchManager.new()
+	var live_match_result: MatchManager.MatchResult = match_manager.detect_matches(board_manager)
+	if live_match_result == null or live_match_result.total_blocks_destroyed <= 0:
+		return CombatManager.AttackEvent.new("player", "enemy", "red", 0)
+
+	var match_color_totals: Dictionary = {}
+	for group in live_match_result.groups:
+		if group.is_empty():
+			continue
+		var group_color: String = ""
+		var anchor_cell: BoardCell = board_manager.get_cell(group[0])
+		if anchor_cell != null and not anchor_cell.is_empty:
+			group_color = anchor_cell.color_id
+		if group_color.is_empty():
+			continue
+		if not match_color_totals.has(group_color):
+			match_color_totals[group_color] = 0
+		match_color_totals[group_color] += group.size()
+
+	if match_color_totals.is_empty():
+		return CombatManager.AttackEvent.new("player", "enemy", "red", 0)
+
+	var dominant_color: String = "red"
+	var dominant_count: int = -1
+	for color_id in match_color_totals.keys():
+		var count: int = int(match_color_totals[color_id])
+		if count > dominant_count:
+			dominant_count = count
+			dominant_color = color_id
+
+	var cascade_count: int = 0
+	var combo_multiplier: float = 1.0
+	if cascade_result != null:
+		cascade_count = cascade_result.cascade_count
+		combo_multiplier = cascade_result.combo_multiplier
+
+	return combat_manager.create_attack_event(
+		"player",
+		"enemy",
+		dominant_color,
+		live_match_result.total_blocks_destroyed,
+		cascade_count,
+		combo_multiplier,
+		[]
+	)
+
+func _apply_match_damage_to_enemy(event_override: CombatManager.AttackEvent = null, cascade_result: CascadeManager.CascadeResult = null) -> void:
+	var attack_event: CombatManager.AttackEvent = event_override
+	if attack_event == null:
+		attack_event = _create_match_attack_event(cascade_result)
+	if attack_event == null or attack_event.amount <= 0:
+		return
+
+	if enemy_controller != null and enemy_controller.has_method("apply_attack_event"):
+		enemy_controller.apply_attack_event(attack_event)
+		return
+
+	if enemy_controller != null and enemy_controller.get("enemy_state") != null:
+		enemy_controller.enemy_state.take_damage(attack_event.amount)
+		enemy_controller.current_attack_preview = "Enemy intent: %s strike for %d" % [attack_event.color.capitalize(), attack_event.amount]
 
 func _spawn_piece(color_id: String = "") -> bool:
 	if board_manager == null:
@@ -226,10 +292,27 @@ func lock_active_piece() -> bool:
 	active_piece = null
 	_refresh_board_views()
 
-	var cascade_count: int = board_manager.resolve_cascade()
+	var pre_resolution_match_manager: MatchManager = MatchManager.new()
+	var pre_resolution_match: MatchManager.MatchResult = pre_resolution_match_manager.detect_matches(board_manager)
+	var pending_attack_event: CombatManager.AttackEvent = null
+	if pre_resolution_match != null and pre_resolution_match.total_blocks_destroyed > 0:
+		pending_attack_event = _create_match_attack_event()
+	var cascade_result: CascadeManager.CascadeResult = board_manager.resolve_cascade_result()
+	var cascade_count: int = cascade_result.cascade_count
 	if event_bus != null:
-		event_bus.emit("cascade_resolved", {"cascade_count": cascade_count})
+		event_bus.emit("cascade_resolved", {"cascade_count": cascade_count, "total_blocks_destroyed": cascade_result.total_blocks_destroyed})
 	_refresh_board_views()
+	if pending_attack_event != null and pre_resolution_match != null and pre_resolution_match.total_blocks_destroyed > 0:
+		pending_attack_event = combat_manager.create_attack_event(
+			"player",
+			"enemy",
+			pending_attack_event.color,
+			pre_resolution_match.total_blocks_destroyed,
+			cascade_count,
+			cascade_result.combo_multiplier,
+			[]
+		)
+	_apply_match_damage_to_enemy(pending_attack_event, cascade_result)
 	if battle_manager != null and battle_manager.current_state != BattleManager.BattleState.ENEMY_ACTION:
 		battle_manager.set_state(BattleManager.BattleState.RESOLVING)
 

@@ -181,6 +181,10 @@ func detect_matches() -> Array:
 	return matches
 
 func resolve_cascade() -> int:
+	var result: CascadeManager.CascadeResult = resolve_cascade_result()
+	return result.cascade_count
+
+func resolve_cascade_result() -> CascadeManager.CascadeResult:
 	var cascade_manager := CascadeManager.new()
 	var result: CascadeManager.CascadeResult = cascade_manager.resolve(self, MatchManager.new())
-	return result.cascade_count
+	return result
