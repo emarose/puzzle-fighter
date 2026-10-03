@@ -9,22 +9,32 @@ var enemy_state: CombatState = CombatState.new("enemy", 100, 100)
 var action_sequence: EnemyActionSequence = EnemyActionSequence.new()
 var current_attack_preview: String = "Enemy intent: idle"
 var turn_counter: int = 0
+var enemy_board_ready: bool = false
 
 func _ready() -> void:
 	battle_manager = get_parent().get_node_or_null("BattleManager")
 	battle_controller = get_parent()
+	enemy_board_ready = battle_controller != null and battle_controller.has_node("EnemyBoardContainer") and battle_controller.get_node_or_null("EnemyBoardContainer/BoardManager") != null
 	combat_manager.register_actor(player_state.actor_id, player_state.max_hp, player_state.current_hp)
 	combat_manager.register_actor(enemy_state.actor_id, enemy_state.max_hp, enemy_state.current_hp)
 
 func bind_battle_and_controller(p_battle_manager: Node, p_battle_controller: Node) -> void:
 	battle_manager = p_battle_manager
 	battle_controller = p_battle_controller
+	enemy_board_ready = battle_controller != null and battle_controller.has_node("EnemyBoardContainer") and battle_controller.get_node_or_null("EnemyBoardContainer/BoardManager") != null
+
+func is_enemy_ready() -> bool:
+	return enemy_board_ready
 
 func get_current_attack_preview() -> String:
 	return current_attack_preview
 
 func execute_turn() -> bool:
 	if battle_controller == null:
+		return false
+	if not is_enemy_ready():
+		if battle_manager != null:
+			battle_manager.set_state(BattleManager.BattleState.PLAYING)
 		return false
 
 	var actions: Array = action_sequence.get_actions()

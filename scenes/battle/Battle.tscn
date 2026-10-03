@@ -4,9 +4,10 @@
 [ext_resource type="Script" uid="uid://bgieco6y1jv8s" path="res://scripts/core/BattleManager.gd" id="2_qp3x8"]
 [ext_resource type="Script" uid="uid://c5cdebp4b5n0j" path="res://scripts/core/BoardManager.gd" id="3_9l2t1"]
 [ext_resource type="Script" uid="uid://dw60kafsgnjxg" path="res://scripts/enemies/EnemyController.gd" id="4_enemies"]
-[ext_resource type="PackedScene" uid="uid://b3s30j0q5v3c2" path="res://scenes/ui/BattleHud.tscn" id="5_battlehud"]
-[ext_resource type="PackedScene" path="res://scenes/board/BoardView.tscn" id="6_boardview"]
-[ext_resource type="PackedScene" path="res://scenes/pieces/PieceView.tscn" id="7_pieceview"]
+[ext_resource type="Script" path="res://scripts/input/InputController.gd" id="5_input"]
+[ext_resource type="PackedScene" uid="uid://b3s30j0q5v3c2" path="res://scenes/ui/BattleHud.tscn" id="6_battlehud"]
+[ext_resource type="PackedScene" path="res://scenes/board/BoardView.tscn" id="7_boardview"]
+[ext_resource type="PackedScene" path="res://scenes/pieces/PieceView.tscn" id="8_pieceview"]
 
 [node name="Battle" type="Node2D" unique_id=1629196341]
 script = ExtResource("1_4j9m3")
@@ -20,16 +21,19 @@ script = ExtResource("3_9l2t1")
 [node name="EnemyController" type="Node" parent="." unique_id=-1542758094]
 script = ExtResource("4_enemies")
 
+[node name="InputController" type="Node" parent="." unique_id=1721217600]
+script = ExtResource("5_input")
+
 [node name="PlayerBoardContainer" type="Node2D" parent="." unique_id=820351956]
 position = Vector2(95, 160)
 
-[node name="BoardView" parent="PlayerBoardContainer" unique_id=359752603 instance=ExtResource("6_boardview")]
+[node name="BoardView" parent="PlayerBoardContainer" unique_id=359752603 instance=ExtResource("7_boardview")]
 
-[node name="PieceView" parent="PlayerBoardContainer" unique_id=607664759 instance=ExtResource("7_pieceview")]
+[node name="PieceView" parent="PlayerBoardContainer" unique_id=607664759 instance=ExtResource("8_pieceview")]
 
 [node name="EnemyBoardContainer" type="Node2D" parent="." unique_id=716373736]
 position = Vector2(320, 160)
 
-[node name="BoardView" parent="EnemyBoardContainer" unique_id=1614741143 instance=ExtResource("6_boardview")]
+[node name="BoardView" parent="EnemyBoardContainer" unique_id=1614741143 instance=ExtResource("7_boardview")]
 
-[node name="BattleHud" parent="." unique_id=1013733575 instance=ExtResource("5_battlehud")]
+[node name="BattleHud" parent="." unique_id=1013733575 instance=ExtResource("6_battlehud")]

@@ -23,6 +23,10 @@ class AttackEvent:
 
 var actors: Dictionary = {}
 var color_palette: Dictionary = ColorDefinition.default_palette()
+var event_bus: EventBus
+
+func _init() -> void:
+	event_bus = EventBus.get_instance()
 
 func register_actor(actor_id: String, max_hp: int, current_hp: int = -1) -> void:
 	var resolved_hp: int = max_hp if current_hp < 0 else current_hp
@@ -47,9 +51,18 @@ func apply_damage(actor_id: String, amount: int) -> int:
 
 	var actor: Dictionary = actors[actor_id]
 	var current_hp: int = int(actor.get("current_hp", 0))
+	var previous_hp: int = current_hp
 	current_hp = max(0, current_hp - amount)
 	actor["current_hp"] = current_hp
 	actors[actor_id] = actor
+	if event_bus != null:
+		event_bus.emit("hp_changed", {
+			"actor_id": actor_id,
+			"previous_hp": previous_hp,
+			"current_hp": current_hp,
+			"amount": amount,
+			"type": "damage",
+		})
 	return current_hp
 
 func heal(actor_id: String, amount: int) -> int:
@@ -59,9 +72,18 @@ func heal(actor_id: String, amount: int) -> int:
 	var actor: Dictionary = actors[actor_id]
 	var max_hp: int = int(actor.get("max_hp", 0))
 	var current_hp: int = int(actor.get("current_hp", 0))
+	var previous_hp: int = current_hp
 	current_hp = min(max_hp, current_hp + amount)
 	actor["current_hp"] = current_hp
 	actors[actor_id] = actor
+	if event_bus != null:
+		event_bus.emit("hp_changed", {
+			"actor_id": actor_id,
+			"previous_hp": previous_hp,
+			"current_hp": current_hp,
+			"amount": amount,
+			"type": "heal",
+		})
 	return current_hp
 
 func create_attack_event(source: String, target: String, color_id: String, base_damage: int, cascade_count: int = 0, combo_multiplier: float = 1.0, special_effects: Array = []) -> AttackEvent:

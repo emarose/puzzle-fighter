@@ -16,6 +16,15 @@ func _ready() -> void:
         board_manager = get_node_or_null(board_manager_path)
     if board_manager == null:
         board_manager = get_parent().get_node_or_null("BoardManager")
+    if board_manager == null:
+        var parent_node: Node = get_parent()
+        while parent_node != null:
+            board_manager = parent_node.get_node_or_null("BoardManager")
+            if board_manager != null:
+                break
+            parent_node = parent_node.get_parent()
+    if board_manager == null and get_tree() != null and get_tree().root != null:
+        board_manager = get_tree().root.get_node_or_null("Battle/BoardManager")
     if board_manager != null:
         board_columns = int(board_manager.columns)
         board_rows = int(board_manager.rows)

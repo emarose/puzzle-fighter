@@ -27,8 +27,10 @@ const RESOLUTION_STATES: Array = [
 var current_state: BattleState = BattleState.INITIALIZING
 var player_character: CharacterDefinition
 var enemy_character: EnemyDefinition
+var event_bus: EventBus
 
 func _ready() -> void:
+	event_bus = EventBus.get_instance()
 	_initialize_characters()
 	if current_state == BattleState.INITIALIZING:
 		start_battle()
@@ -74,6 +76,12 @@ func _transition_to(new_state: BattleState) -> bool:
 	var previous_state: BattleState = current_state
 	current_state = new_state
 	emit_signal("state_changed", previous_state, current_state)
+	if event_bus != null:
+		event_bus.emit("battle_state_changed", {
+			"previous_state": int(previous_state),
+			"new_state": int(current_state),
+			"state_name": BattleState.keys()[current_state],
+		})
 	return true
 
 func register_outcome(player_hp: int, enemy_hp: int) -> void:
