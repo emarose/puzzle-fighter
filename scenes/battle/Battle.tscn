@@ -36,4 +36,9 @@ position = Vector2(320, 160)
 
 [node name="BoardView" parent="EnemyBoardContainer" unique_id=1614741143 instance=ExtResource("7_boardview")]
 
+[node name="BoardManager" type="Node" parent="EnemyBoardContainer"]
+script = ExtResource("3_9l2t1")
+
+[node name="PieceView" parent="EnemyBoardContainer" instance=ExtResource("8_pieceview")]
+
 [node name="BattleHud" parent="." unique_id=1013733575 instance=ExtResource("6_battlehud")]

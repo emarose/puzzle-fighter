@@ -26,8 +26,8 @@ func _init(p_id: String = "", p_name: String = "", p_attack_behavior: String = "
 
 static func default_palette() -> Dictionary:
     return {
-        "red": ColorDefinition.new("red", "Red", "damage", Color(1.0, 0.3, 0.35), 1.2, CombatRole.DAMAGE),
-        "blue": ColorDefinition.new("blue", "Blue", "defense", Color(0.35, 0.55, 1.0), 0.9, CombatRole.DEFENSE),
-        "green": ColorDefinition.new("green", "Green", "heal", Color(0.3, 0.9, 0.55), 1.1, CombatRole.HEAL),
-        "yellow": ColorDefinition.new("yellow", "Yellow", "energy", Color(1.0, 0.8, 0.2), 1.0, CombatRole.ENERGY),
+        "red": ColorDefinition.new("red", "Red", "damage", Color(1.0, 0.3, 0.35), 1.35, CombatRole.DAMAGE),
+        "blue": ColorDefinition.new("blue", "Blue", "defense", Color(0.35, 0.55, 1.0), 0.75, CombatRole.DEFENSE),
+        "green": ColorDefinition.new("green", "Green", "heal", Color(0.3, 0.9, 0.55), 0.9, CombatRole.HEAL),
+        "yellow": ColorDefinition.new("yellow", "Yellow", "energy", Color(1.0, 0.8, 0.2), 0.8, CombatRole.ENERGY),
     }

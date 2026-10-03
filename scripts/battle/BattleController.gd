@@ -63,7 +63,7 @@ func _on_battle_state_changed(_old_state: int, new_state: int) -> void:
 			if battle_manager != null:
 				battle_manager.set_state(BattleManager.BattleState.PLAYING)
 			return
-		enemy_controller.execute_turn()
+		await enemy_controller.execute_turn()
 		return
 
 	if new_state == BattleManager.BattleState.PLAYING and active_piece == null:
@@ -72,6 +72,8 @@ func _on_battle_state_changed(_old_state: int, new_state: int) -> void:
 func _initialize_board() -> void:
 	if board_manager != null:
 		board_manager.reset_board(Vector2i(6, 10))
+	if enemy_board_manager != null:
+		enemy_board_manager.reset_board(Vector2i(6, 10))
 	_refresh_board_views()
 
 func _next_spawn_color() -> String:
@@ -146,6 +148,8 @@ func _apply_match_damage_to_enemy(event_override: CombatManager.AttackEvent = nu
 
 	if enemy_controller != null and enemy_controller.has_method("apply_attack_event"):
 		enemy_controller.apply_attack_event(attack_event)
+		if battle_manager != null:
+			battle_manager.register_outcome(enemy_controller.player_state.current_hp, enemy_controller.enemy_state.current_hp)
 		return
 
 	if enemy_controller != null and enemy_controller.get("enemy_state") != null:
@@ -176,27 +180,6 @@ func _spawn_piece(color_id: String = "") -> bool:
 		player_piece_view.show_piece(active_piece)
 	_refresh_board_views()
 	return true
-
-func spawn_enemy_piece(color_id: String = "green") -> bool:
-	return _spawn_piece(color_id)
-
-func enemy_move(direction: Vector2i) -> bool:
-	return try_move(direction)
-
-func enemy_rotate(clockwise: bool = true) -> bool:
-	return try_rotate(clockwise)
-
-func lock_enemy_piece() -> bool:
-	return lock_active_piece()
-
-func resolve_enemy_board() -> bool:
-	var cascade_count: int = board_manager.resolve_cascade()
-	return cascade_count >= 0
-
-func execute_enemy_sequence(actions: Array = []) -> bool:
-	if enemy_controller != null and enemy_controller.has_method("execute_turn"):
-		return bool(enemy_controller.execute_turn())
-	return false
 
 func try_move(direction: Vector2i) -> bool:
 	if active_piece == null:
@@ -313,6 +296,8 @@ func lock_active_piece() -> bool:
 			[]
 		)
 	_apply_match_damage_to_enemy(pending_attack_event, cascade_result)
+	if battle_manager != null and battle_manager.current_state == BattleManager.BattleState.VICTORY:
+		return true
 	if battle_manager != null and battle_manager.current_state != BattleManager.BattleState.ENEMY_ACTION:
 		battle_manager.set_state(BattleManager.BattleState.RESOLVING)
 

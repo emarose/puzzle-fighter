@@ -40,10 +40,16 @@ func get_actor_hp(actor_id: String) -> int:
 		return 0
 	return int(actors[actor_id].get("current_hp", 0))
 
-func calculate_color_modifier(color_id: String) -> float:
+func get_color_definition(color_id: String) -> ColorDefinition:
 	if not color_palette.has(color_id):
+		return null
+	return color_palette[color_id]
+
+func calculate_color_modifier(color_id: String) -> float:
+	var color_definition: ColorDefinition = get_color_definition(color_id)
+	if color_definition == null:
 		return 1.0
-	return float(color_palette[color_id].attack_modifier)
+	return float(color_definition.attack_modifier)
 
 func apply_damage(actor_id: String, amount: int) -> int:
 	if not actors.has(actor_id):
@@ -88,15 +94,87 @@ func heal(actor_id: String, amount: int) -> int:
 
 func create_attack_event(source: String, target: String, color_id: String, base_damage: int, cascade_count: int = 0, combo_multiplier: float = 1.0, special_effects: Array = []) -> AttackEvent:
 	var cascade_bonus: int = max(0, cascade_count - 1) * 2
+	var color_definition: ColorDefinition = get_color_definition(color_id)
 	var color_modifier: float = calculate_color_modifier(color_id)
-	var total_damage: int = max(0, int(float(base_damage + cascade_bonus) * color_modifier))
-	total_damage = int(float(total_damage) * combo_multiplier)
-	return AttackEvent.new(source, target, color_id, total_damage, cascade_bonus, combo_multiplier, special_effects)
+	var effect_list: Array = []
+	if special_effects != null:
+		effect_list = special_effects.duplicate()
+
+	var total_amount: int = 0
+	if color_definition == null:
+		total_amount = max(0, int(float(base_damage + cascade_bonus) * color_modifier))
+		total_amount = int(float(total_amount) * combo_multiplier)
+		return AttackEvent.new(source, target, color_id, total_amount, cascade_bonus, combo_multiplier, effect_list)
+
+	match color_definition.combat_role:
+		ColorDefinition.CombatRole.DAMAGE:
+			total_amount = max(1, int(float(base_damage + cascade_bonus) * color_modifier))
+			total_amount = int(float(total_amount) * combo_multiplier)
+			return AttackEvent.new(source, target, color_id, total_amount, cascade_bonus, combo_multiplier, effect_list)
+		ColorDefinition.CombatRole.DEFENSE:
+			total_amount = max(1, int(float(base_damage * 0.5) + cascade_bonus))
+			effect_list.append("guard")
+			return AttackEvent.new(source, source, color_id, total_amount, cascade_bonus, combo_multiplier, effect_list)
+		ColorDefinition.CombatRole.HEAL:
+			total_amount = max(1, int(float(base_damage * 0.75) + cascade_bonus))
+			effect_list.append("heal")
+			return AttackEvent.new(source, source, color_id, total_amount, cascade_bonus, combo_multiplier, effect_list)
+		ColorDefinition.CombatRole.ENERGY:
+			total_amount = max(1, int(float(base_damage * 0.4) + cascade_bonus))
+			effect_list.append("energy")
+			return AttackEvent.new(source, source, color_id, total_amount, cascade_bonus, combo_multiplier, effect_list)
+		_:
+			total_amount = max(0, int(float(base_damage + cascade_bonus) * color_modifier))
+			total_amount = int(float(total_amount) * combo_multiplier)
+			return AttackEvent.new(source, target, color_id, total_amount, cascade_bonus, combo_multiplier, effect_list)
 
 func resolve_attack(source_actor_id: String, target_actor_id: String, color_id: String, base_damage: int, cascade_count: int = 0, combo_multiplier: float = 1.0, special_effects: Array = []) -> AttackEvent:
 	var event: AttackEvent = create_attack_event(source_actor_id, target_actor_id, color_id, base_damage, cascade_count, combo_multiplier, special_effects)
-	apply_damage(target_actor_id, event.amount)
+	apply_attack_event(event)
 	return event
+
+func apply_attack_event(event: AttackEvent) -> void:
+	if event == null:
+		return
+
+	var role: ColorDefinition.CombatRole = ColorDefinition.CombatRole.DAMAGE
+	var color_definition: ColorDefinition = get_color_definition(event.color)
+	if color_definition != null:
+		role = color_definition.combat_role
+
+	if event_bus != null:
+		event_bus.emit("attack_created", {
+			"source": event.source,
+			"target": event.target,
+			"color": event.color,
+			"amount": event.amount,
+			"cascade_bonus": event.cascade_bonus,
+			"combo_multiplier": event.combo_multiplier,
+		})
+
+	match role:
+		ColorDefinition.CombatRole.DAMAGE:
+			apply_damage(event.target, event.amount)
+		ColorDefinition.CombatRole.DEFENSE:
+			if event_bus != null:
+				event_bus.emit("guard_applied", {
+					"actor_id": event.source,
+					"amount": event.amount,
+					"color": event.color,
+				})
+			if actors.has(event.source):
+				heal(event.source, max(1, int(event.amount * 0.5)))
+		ColorDefinition.CombatRole.HEAL:
+			heal(event.source, event.amount)
+		ColorDefinition.CombatRole.ENERGY:
+			if event_bus != null:
+				event_bus.emit("energy_gain", {
+					"actor_id": event.source,
+					"amount": event.amount,
+					"color": event.color,
+				})
+		_:
+			apply_damage(event.target, event.amount)
 
 func is_actor_defeated(actor_id: String) -> bool:
 	if not actors.has(actor_id):
