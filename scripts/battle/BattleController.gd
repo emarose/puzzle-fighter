@@ -3,6 +3,7 @@ extends Node
 @onready var battle_manager: Node = $BattleManager
 @onready var board_manager: Node = $BoardManager
 @onready var enemy_controller: Node = $EnemyController
+@onready var player_piece_view: PieceView = $PlayerBoardContainer/PieceView
 
 var piece_spawner: PieceSpawner = PieceSpawner.new()
 var active_piece: Piece
@@ -50,6 +51,8 @@ func _spawn_piece(color_id: String = "red") -> bool:
 		return false
 
 	active_piece.spawn()
+	if player_piece_view != null and player_piece_view.has_method("show_piece"):
+		player_piece_view.show_piece(active_piece)
 	return true
 
 func spawn_enemy_piece(color_id: String = "green") -> bool:
@@ -88,6 +91,8 @@ func try_move(direction: Vector2i) -> bool:
 		return false
 
 	active_piece.logical_position += direction
+	if player_piece_view != null and player_piece_view.has_method("show_piece"):
+		player_piece_view.show_piece(active_piece)
 	return true
 
 func try_rotate(clockwise: bool = true) -> bool:
@@ -117,6 +122,8 @@ func try_rotate(clockwise: bool = true) -> bool:
 	else:
 		active_piece.rotate_counter_clockwise()
 
+	if player_piece_view != null and player_piece_view.has_method("show_piece"):
+		player_piece_view.show_piece(active_piece)
 	return true
 
 func hard_drop() -> bool:
@@ -151,6 +158,8 @@ func lock_active_piece() -> bool:
 		return false
 
 	active_piece.lock()
+	if player_piece_view != null and player_piece_view.has_method("clear_piece"):
+		player_piece_view.clear_piece()
 	active_piece = null
 
 	var cascade_count: int = board_manager.resolve_cascade()
