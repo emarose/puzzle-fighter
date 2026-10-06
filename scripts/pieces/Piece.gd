@@ -66,5 +66,16 @@ func get_block_positions() -> Array:
 		positions.append(logical_position + local_position)
 	return positions
 
+func get_block_color(index: int) -> String:
+	if index < 0 or index >= blocks.size():
+		return ""
+	return str(blocks[index].get("color_id", color_id))
+
+func get_color_ids() -> Array[String]:
+	var colors: Array[String] = []
+	for index in range(blocks.size()):
+		colors.append(get_block_color(index))
+	return colors
+
 func get_block_count() -> int:
 	return blocks.size()

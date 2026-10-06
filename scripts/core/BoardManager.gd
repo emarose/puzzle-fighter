@@ -110,6 +110,26 @@ func lock_piece(piece_positions: Array, origin: Vector2i, color_id: String, piec
 
 	return locked_positions
 
+func lock_piece_blocks(blocks: Array, origin: Vector2i, piece_id: String = "") -> Array:
+	if blocks.size() != 2:
+		return []
+	var positions: Array = []
+	var colors: Array[String] = []
+	for block in blocks:
+		if typeof(block) != TYPE_DICTIONARY:
+			return []
+		var local_position: Variant = block.get("local_position", Vector2i.ZERO)
+		var color_id: String = str(block.get("color_id", ""))
+		if typeof(local_position) != TYPE_VECTOR2I or color_id.is_empty():
+			return []
+		positions.append(origin + local_position)
+		colors.append(color_id)
+	if not can_place_block_positions(positions):
+		return []
+	for index in range(positions.size()):
+		set_cell(positions[index], colors[index], piece_id)
+	return positions
+
 func apply_gravity() -> void:
 	for x in range(columns):
 		var column_cells: Array = []

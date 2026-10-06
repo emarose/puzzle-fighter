@@ -111,8 +111,8 @@ func execute_turn() -> bool:
 	for action in actions:
 		match str(action.get("name", "")):
 			"spawn":
-				success = _spawn_enemy_piece(str(planned_drop["color"]), int(action["start_column"]))
-				current_attack_preview = "dropping %s" % str(planned_drop["color"]).capitalize()
+				success = _spawn_enemy_piece(planned_drop["color_ids"], int(action["start_column"]))
+				current_attack_preview = "dropping %s" % _format_colors(planned_drop["color_ids"])
 			"move":
 				while active_piece != null and active_piece.logical_position.x != int(planned_drop["column"]):
 					var horizontal_step: int = 1 if active_piece.logical_position.x < int(planned_drop["column"]) else -1
@@ -135,7 +135,7 @@ func execute_turn() -> bool:
 				if cascade_result.total_blocks_destroyed > 0:
 					_resolve_enemy_matches(cascade_result)
 				else:
-					current_attack_preview = "locked %s, no match" % str(planned_drop["color"]).capitalize()
+					current_attack_preview = "locked %s, no match" % _format_colors(planned_drop["color_ids"])
 			_:
 				success = false
 		if not success:
@@ -159,22 +159,24 @@ func _choose_drop_plan(preferred_plan: Dictionary) -> Dictionary:
 	var best_plan: Dictionary = {}
 	var best_score: int = -2147483648
 	for shape in [preferred_shape, alternate_shape]:
-		for color_id in available_colors:
-			for column in range(enemy_board_manager.columns):
-				var landing_origin: Vector2i = _find_landing_origin(column, shape)
-				if landing_origin.x < 0:
-					continue
-				var positions: Array = _positions_for_piece(landing_origin, shape)
-				var score: int = _count_matching_neighbors(color_id, positions) * pattern.match_priority
-				if color_id == preferred_color:
-					score += pattern.color_preference
-				if column == preferred_column:
-					score += pattern.column_preference
-				if shape == preferred_shape:
-					score += pattern.shape_preference
-				if score > best_score:
-					best_score = score
-					best_plan = {"color": color_id, "column": column, "shape": shape}
+		for first_color in available_colors:
+			for second_color in available_colors:
+				var color_ids: Array[String] = [first_color, second_color]
+				for column in range(enemy_board_manager.columns):
+					var landing_origin: Vector2i = _find_landing_origin(column, shape)
+					if landing_origin.x < 0:
+						continue
+					var positions: Array = _positions_for_piece(landing_origin, shape)
+					var score: int = _count_matching_neighbors(color_ids, positions) * pattern.match_priority
+					if first_color == preferred_color:
+						score += pattern.color_preference
+					if column == preferred_column:
+						score += pattern.column_preference
+					if shape == preferred_shape:
+						score += pattern.shape_preference
+					if score > best_score:
+						best_score = score
+						best_plan = {"color_ids": color_ids, "column": column, "shape": shape}
 	return best_plan
 
 func _find_landing_origin(column: int, shape: Array) -> Vector2i:
@@ -191,9 +193,10 @@ func _positions_for_piece(origin: Vector2i, shape: Array) -> Array:
 		positions.append(origin + offset)
 	return positions
 
-func _count_matching_neighbors(color_id: String, positions: Array) -> int:
+func _count_matching_neighbors(color_ids: Array[String], positions: Array) -> int:
 	var count: int = 0
-	for position in positions:
+	for index in range(positions.size()):
+		var position: Vector2i = positions[index]
 		for direction in [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]:
 			var neighbor_position: Vector2i = position + direction
 			if positions.has(neighbor_position):
@@ -201,12 +204,20 @@ func _count_matching_neighbors(color_id: String, positions: Array) -> int:
 			if not enemy_board_manager.is_within_bounds(neighbor_position):
 				continue
 			var neighbor: BoardCell = enemy_board_manager.get_cell(neighbor_position)
-			if not neighbor.is_empty and neighbor.color_id == color_id:
+			if not neighbor.is_empty and neighbor.color_id == color_ids[index]:
 				count += 1
 	return count
 
-func _spawn_enemy_piece(color_id: String, column: int) -> bool:
-	active_piece = enemy_piece_spawner.create_piece(color_id, Vector2i(column, 0))
+func _format_colors(color_ids: Array) -> String:
+	var labels: PackedStringArray = []
+	for color_id in color_ids:
+		labels.append(str(color_id))
+	return " + ".join(labels)
+
+func _spawn_enemy_piece(color_ids: Array, column: int) -> bool:
+	active_piece = enemy_piece_spawner.create_piece_with_colors(color_ids, Vector2i(column, 0))
+	if active_piece == null:
+		return false
 	if not enemy_board_manager.can_place_block_positions(active_piece.get_block_positions()):
 		active_piece = null
 		return false
@@ -214,7 +225,7 @@ func _spawn_enemy_piece(color_id: String, column: int) -> bool:
 	enemy_piece_view.show_piece(active_piece)
 	var event_bus: EventBus = EventBus.get_instance()
 	if event_bus != null:
-		event_bus.emit("piece_spawned", {"actor_id": enemy_state.actor_id, "piece_id": active_piece.id, "color": color_id, "position": active_piece.logical_position})
+		event_bus.emit("piece_spawned", {"actor_id": enemy_state.actor_id, "piece_id": active_piece.id, "colors": active_piece.get_color_ids(), "position": active_piece.logical_position})
 	return true
 
 func _try_move_down() -> bool:
@@ -267,22 +278,22 @@ func _rotate_active_piece() -> bool:
 func _lock_active_piece() -> bool:
 	if active_piece == null:
 		return false
-	var locked_positions: Array = enemy_board_manager.lock_piece(
-		active_piece.get_block_positions(),
-		Vector2i.ZERO,
-		active_piece.color_id,
+	var locked_positions: Array = enemy_board_manager.lock_piece_blocks(
+		active_piece.blocks,
+		active_piece.logical_position,
 		active_piece.id
 	)
 	if locked_positions.is_empty():
 		return false
 	active_piece.lock()
 	var locked_piece_id: String = active_piece.id
+	var locked_colors: Array[String] = active_piece.get_color_ids()
 	active_piece = null
 	enemy_piece_view.clear_piece()
 	_refresh_enemy_board()
 	var event_bus: EventBus = EventBus.get_instance()
 	if event_bus != null:
-		event_bus.emit("piece_locked", {"actor_id": enemy_state.actor_id, "piece_id": locked_piece_id, "positions": locked_positions})
+		event_bus.emit("piece_locked", {"actor_id": enemy_state.actor_id, "piece_id": locked_piece_id, "positions": locked_positions, "colors": locked_colors})
 	return true
 
 func _resolve_enemy_matches(cascade_result: CascadeManager.CascadeResult) -> void:

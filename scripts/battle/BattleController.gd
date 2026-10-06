@@ -12,7 +12,6 @@ var piece_spawner: PieceSpawner = PieceSpawner.new()
 var active_piece: Piece
 var event_bus: EventBus
 var fall_timer: float = 0.0
-var next_color_index: int = 0
 var combat_manager: CombatManager = CombatManager.new()
 var skill_manager: SkillManager = SkillManager.new()
 
@@ -101,14 +100,6 @@ func _initialize_board() -> void:
 	if enemy_board_manager != null:
 		enemy_board_manager.reset_board(Vector2i(6, 10))
 	_refresh_board_views()
-
-func _next_spawn_color() -> String:
-	var available_colors: Array[String] = battle_manager.player_character.available_colors
-	if available_colors.is_empty():
-		available_colors = ["red", "blue", "green", "yellow"]
-	var color_name: String = available_colors[next_color_index % available_colors.size()]
-	next_color_index += 1
-	return color_name
 
 func _refresh_board_views() -> void:
 	var player_board_view: Node2D = get_node_or_null("PlayerBoardContainer/BoardView")
@@ -244,13 +235,17 @@ func _apply_player_cascade_effects(cascade_result: CascadeManager.CascadeResult)
 		if battle_manager.current_state == BattleManager.BattleState.VICTORY:
 			return
 
-func _spawn_piece(color_id: String = "") -> bool:
-	if board_manager == null:
+func _spawn_piece() -> bool:
+	if board_manager == null or battle_manager == null:
 		return false
 
-	var resolved_color: String = color_id if not color_id.is_empty() else _next_spawn_color()
 	var spawn_position := Vector2i(1, 0)
-	active_piece = piece_spawner.create_piece(resolved_color, spawn_position, [Vector2i(0, 0), Vector2i(1, 0)])
+	active_piece = piece_spawner.create_random_piece(
+		battle_manager.player_character.available_colors,
+		spawn_position
+	)
+	if active_piece == null:
+		return false
 
 	if not board_manager.can_place_block_positions(active_piece.get_block_positions(), Vector2i.ZERO):
 		if battle_manager != null:
@@ -261,7 +256,7 @@ func _spawn_piece(color_id: String = "") -> bool:
 	if event_bus != null:
 		event_bus.emit("piece_spawned", {
 			"piece_id": active_piece.id,
-			"color": active_piece.color_id,
+			"colors": active_piece.get_color_ids(),
 			"position": active_piece.logical_position,
 		})
 	if player_piece_view != null and player_piece_view.has_method("show_piece"):
@@ -343,10 +338,9 @@ func lock_active_piece() -> bool:
 	if active_piece == null:
 		return false
 
-	var locked_positions: Array = board_manager.lock_piece(
-		active_piece.get_block_positions(),
-		Vector2i.ZERO,
-		active_piece.color_id,
+	var locked_positions: Array = board_manager.lock_piece_blocks(
+		active_piece.blocks,
+		active_piece.logical_position,
 		active_piece.id
 	)
 
@@ -357,7 +351,7 @@ func lock_active_piece() -> bool:
 	if event_bus != null:
 		event_bus.emit("piece_locked", {
 			"piece_id": active_piece.id,
-			"color": active_piece.color_id,
+			"colors": active_piece.get_color_ids(),
 			"position": active_piece.logical_position,
 		})
 	if player_piece_view != null and player_piece_view.has_method("clear_piece"):

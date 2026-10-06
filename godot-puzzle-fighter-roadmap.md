@@ -215,7 +215,7 @@ Define how two-block pieces spawn, move, rotate, and lock.
 ### Piece structure
 Each piece should contain:
 - `id`
-- `color`
+- per-block `color_id` values (one for each of the two blocks)
 - `blocks`
 - `orientation`
 - `logical_position`
@@ -234,14 +234,15 @@ Each block should have:
 ### Steps
 1. Create `Piece` script.
 2. Define a piece as two connected blocks.
-3. Implement the rotation matrix for 90-degree turns.
-4. Validate rotation against:
+3. Draw each block color independently from the owning actor's available colors; matching colors are allowed.
+4. Implement the rotation matrix for 90-degree turns.
+5. Validate rotation against:
    - board bounds
    - occupied cells
    - resulting block positions
-5. Implement `move_left()`, `move_right()`, `soft_drop()`, and `hard_drop()`.
-6. Implement `spawn()`, `lock()`, and `destroy()`.
-7. Keep visual interpolation in a separate view layer.
+6. Implement `move_left()`, `move_right()`, `soft_drop()`, and `hard_drop()`.
+7. Implement `spawn()`, `lock()`, and `destroy()`, preserving each block's color when locking it to the board.
+8. Keep visual interpolation in a separate view layer.
 
 ### Recommended behavior
 - Soft drop: move down one row when allowed.

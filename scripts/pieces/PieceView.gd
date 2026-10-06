@@ -16,10 +16,11 @@ func _draw() -> void:
 	if piece == null:
 		return
 
-	for block in piece.blocks:
+	for index in range(piece.blocks.size()):
+		var block: Dictionary = piece.blocks[index]
 		var local_position: Vector2i = block.get("local_position", Vector2i.ZERO)
 		var world_position: Vector2i = piece.logical_position + local_position
-		var color: Color = color_for_id(piece.color_id)
+		var color: Color = color_for_id(piece.get_block_color(index))
 		var rect := Rect2(
 			Vector2(world_position.x * cell_size.x + 4, world_position.y * cell_size.y + 4),
 			cell_size - Vector2(8, 8)
