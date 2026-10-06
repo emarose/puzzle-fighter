@@ -1,0 +1,40 @@
+[gd_resource type="Resource" script_class="SkillCatalog" format=3 uid="uid://3k4pk83oolea"]
+
+[ext_resource type="Script" uid="uid://dx1m5wif0caqb" path="res://scripts/core/definitions/SkillCatalog.gd" id="1_catalog"]
+[ext_resource type="Script" uid="uid://d18r4uccym0lx" path="res://scripts/core/definitions/SkillDefinition.gd" id="2_skill"]
+
+[sub_resource type="Resource" id="burst"]
+script = ExtResource("2_skill")
+id = "burst"
+name = "Burst"
+cost = 3
+parameters = {
+"amount": 12
+}
+description = "Deal 12 damage."
+
+[sub_resource type="Resource" id="heal"]
+script = ExtResource("2_skill")
+id = "heal"
+name = "Heal"
+cost = 3
+effect_type = "heal"
+target = "self"
+parameters = {
+"amount": 10
+}
+description = "Restore 10 HP."
+
+[sub_resource type="Resource" id="pulse"]
+script = ExtResource("2_skill")
+id = "pulse"
+name = "Pulse"
+cost = 2
+parameters = {
+"amount": 8
+}
+description = "Deal 8 damage."
+
+[resource]
+script = ExtResource("1_catalog")
+skills = [SubResource("burst"), SubResource("heal"), SubResource("pulse")]

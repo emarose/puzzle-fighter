@@ -26,10 +26,13 @@ class CascadeResult:
 		rounds = p_rounds
 		color_block_counts = p_color_block_counts
 
-func resolve(board: BoardManager, match_manager: MatchManager = null, actor_id: String = "") -> CascadeResult:
+func resolve(board: BoardManager, match_manager: MatchManager = null, actor_id: String = "", combat_tuning: CombatTuning = null) -> CascadeResult:
 	if board == null:
 		return CascadeResult.new(0, 0, 0, 0, 1.0, [])
 
+	var active_tuning: CombatTuning = combat_tuning
+	if active_tuning == null:
+		active_tuning = preload("res://resources/combat_tuning.tres")
 	if event_bus != null:
 		event_bus.emit("cascade_started", {"actor_id": actor_id})
 	var active_match_manager: MatchManager = match_manager if match_manager != null else MatchManager.new()
@@ -74,7 +77,7 @@ func resolve(board: BoardManager, match_manager: MatchManager = null, actor_id: 
 
 		board.apply_gravity()
 
-	var combo_multiplier: float = 1.0 + (cascade_count - 1) * 0.5
+	var combo_multiplier: float = 1.0 + (cascade_count - 1) * active_tuning.combo_step_per_extra_wave
 	var attack_power: int = int(total_blocks_destroyed * combo_multiplier)
 	var result := CascadeResult.new(cascade_count, total_match_count, total_blocks_destroyed, attack_power, combo_multiplier, rounds, color_block_counts)
 	if event_bus != null:

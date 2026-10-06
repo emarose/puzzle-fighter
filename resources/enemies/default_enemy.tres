@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="EnemyDefinition" format=3 uid="uid://b8l8bte54ukun"]
+
+[ext_resource type="Script" uid="uid://cb1k1ho8knnta" path="res://scripts/core/definitions/EnemyDefinition.gd" id="1_enemy"]
+[ext_resource type="Resource" path="res://resources/enemies/default_turn_pattern.tres" id="2_pattern"]
+
+[resource]
+script = ExtResource("1_enemy")
+turn_pattern = ExtResource("2_pattern")
+id = "enemy"
+name = "Enemy"
+max_hp = 50

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ColorDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/definitions/ColorDefinition.gd" id="1_color"]
+
+[resource]
+script = ExtResource("1_color")
+id = "red"
+name = "Red"
+attack_behavior = "damage"
+display_color = Color(1, 0.3, 0.35, 1)
+attack_modifier = 1.35
+effect_multiplier = 1.0
+combat_role = 0

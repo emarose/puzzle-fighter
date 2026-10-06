@@ -6,9 +6,7 @@ extends CanvasLayer
 @onready var enemy_action_label: Label = $MarginContainer/VBoxContainer/EnemyAction
 @onready var turn_label: Label = $MarginContainer/VBoxContainer/Turn
 @onready var skill_status_label: Label = $MarginContainer/VBoxContainer/SkillStatus
-@onready var burst_button: Button = $MarginContainer/VBoxContainer/SkillButtons/BurstButton
-@onready var heal_button: Button = $MarginContainer/VBoxContainer/SkillButtons/HealButton
-@onready var pulse_button: Button = $MarginContainer/VBoxContainer/SkillButtons/PulseButton
+@onready var skill_buttons_container: HBoxContainer = $MarginContainer/VBoxContainer/SkillButtons
 
 var skill_buttons: Dictionary = {}
 
@@ -29,14 +27,7 @@ func _ready() -> void:
 	if event_bus != null:
 		event_bus.event_emitted.connect(_on_event_emitted)
 
-	skill_buttons = {
-		"burst": burst_button,
-		"heal": heal_button,
-		"pulse": pulse_button,
-	}
-	burst_button.pressed.connect(_on_skill_button_pressed.bind("burst"))
-	heal_button.pressed.connect(_on_skill_button_pressed.bind("heal"))
-	pulse_button.pressed.connect(_on_skill_button_pressed.bind("pulse"))
+	call_deferred("_build_skill_buttons")
 	_update_hud()
 
 func _on_state_changed(_old_state: int, _new_state: int) -> void:
@@ -48,6 +39,26 @@ func _on_skill_button_pressed(skill_id: String) -> void:
 	if not battle_controller.use_skill(skill_id):
 		return
 	_update_hud()
+
+func _build_skill_buttons() -> void:
+	if battle_controller == null or not battle_controller.has_method("get_player_skill_definitions"):
+		return
+	skill_buttons.clear()
+	for child in skill_buttons_container.get_children():
+		child.queue_free()
+	var skill_definitions: Array[SkillDefinition] = battle_controller.get_player_skill_definitions()
+	for index in range(skill_definitions.size()):
+		var definition: SkillDefinition = skill_definitions[index]
+		var button := Button.new()
+		button.custom_minimum_size.y = 64
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var shortcut: String = " [%d]" % (index + 1) if index < 3 else ""
+		button.text = "%s (%d)%s" % [definition.name, definition.cost, shortcut]
+		button.tooltip_text = definition.description
+		button.pressed.connect(_on_skill_button_pressed.bind(definition.id))
+		skill_buttons_container.add_child(button)
+		skill_buttons[definition.id] = button
+	_update_skill_status()
 
 func _on_event_emitted(event_name: String, payload: Dictionary) -> void:
 	match event_name:
@@ -61,9 +72,19 @@ func _on_event_emitted(event_name: String, payload: Dictionary) -> void:
 				player_actor_id = enemy_controller.player_state.actor_id
 				enemy_actor_id = enemy_controller.enemy_state.actor_id
 			if payload.get("actor_id", "") == player_actor_id:
-				player_hp_label.text = "Player HP: %d" % int(payload.get("current_hp", 0))
+				var player_max_hp: int = enemy_controller.player_state.max_hp if enemy_controller != null else 0
+				player_hp_label.text = "%s HP: %d / %d" % [
+					_get_player_name(),
+					int(payload.get("current_hp", 0)),
+					player_max_hp,
+				]
 			elif payload.get("actor_id", "") == enemy_actor_id:
-				enemy_hp_label.text = "Enemy HP: %d" % int(payload.get("current_hp", 0))
+				var enemy_max_hp: int = enemy_controller.enemy_state.max_hp if enemy_controller != null else 0
+				enemy_hp_label.text = "%s HP: %d / %d" % [
+					_get_enemy_name(),
+					int(payload.get("current_hp", 0)),
+					enemy_max_hp,
+				]
 		"piece_spawned":
 			enemy_action_label.text = "Enemy intent: piece spawned"
 		"piece_locked":
@@ -73,7 +94,10 @@ func _on_event_emitted(event_name: String, payload: Dictionary) -> void:
 		"skill_energy_changed":
 			_update_skill_status()
 			if enemy_controller != null and str(payload.get("actor_id", "")) == enemy_controller.player_state.actor_id:
-				enemy_action_label.text = "Player energy: %d / 9" % int(payload.get("energy", 0))
+				enemy_action_label.text = "Player energy: %d / %d" % [
+					int(payload.get("energy", 0)),
+					battle_controller.get_max_energy(),
+				]
 		"skill_used":
 			_update_skill_status()
 			enemy_action_label.text = "Skill used: %s" % str(payload.get("skill_id", ""))
@@ -124,42 +148,52 @@ func _update_hud() -> void:
 		turn_label.text = "Turn: 0"
 
 	if enemy_controller != null and enemy_controller.get("player_state") != null:
-		player_hp_label.text = "Player HP: %d" % enemy_controller.get("player_state").current_hp
+		var player_state: CombatState = enemy_controller.get("player_state")
+		player_hp_label.text = "%s HP: %d / %d" % [_get_player_name(), player_state.current_hp, player_state.max_hp]
 	else:
-		player_hp_label.text = "Player HP: 100"
+		player_hp_label.text = "%s HP: --" % _get_player_name()
 
 	if enemy_controller != null and enemy_controller.get("enemy_state") != null:
-		enemy_hp_label.text = "Enemy HP: %d" % enemy_controller.get("enemy_state").current_hp
+		var enemy_state: CombatState = enemy_controller.get("enemy_state")
+		enemy_hp_label.text = "%s HP: %d / %d" % [_get_enemy_name(), enemy_state.current_hp, enemy_state.max_hp]
 	else:
-		enemy_hp_label.text = "Enemy HP: 100"
+		enemy_hp_label.text = "%s HP: --" % _get_enemy_name()
 	_update_skill_status()
+
+func _get_player_name() -> String:
+	if battle_manager != null and battle_manager.player_character != null:
+		return battle_manager.player_character.name
+	return "Player"
+
+func _get_enemy_name() -> String:
+	if battle_manager != null and battle_manager.enemy_character != null:
+		return battle_manager.enemy_character.name
+	return "Enemy"
 
 func _update_skill_status() -> void:
 	if battle_controller == null:
 		for button in skill_buttons.values():
 			button.disabled = true
 		return
-	if battle_controller.has_method("get_skill_energy") and battle_controller.has_method("get_player_guard"):
-		skill_status_label.text = "Guard: %d | Energy: %d / 9" % [
+	if (
+		battle_controller.has_method("get_skill_energy")
+		and battle_controller.has_method("get_player_guard")
+		and battle_controller.has_method("get_enemy_energy")
+		and battle_controller.has_method("get_enemy_guard")
+		and battle_controller.has_method("get_max_energy")
+	):
+		skill_status_label.text = "Player - Guard: %d | Energy: %d/%d\nEnemy - Guard: %d | Energy: %d/%d" % [
 			battle_controller.get_player_guard(),
 			battle_controller.get_skill_energy(),
+			battle_controller.get_max_energy(),
+			battle_controller.get_enemy_guard(),
+			battle_controller.get_enemy_energy(),
+			battle_controller.get_max_energy(),
 		]
 	if not battle_controller.has_method("can_use_skill"):
 		for button in skill_buttons.values():
 			button.disabled = true
 		return
-	var skill_labels: Dictionary = {
-		"burst": "Burst",
-		"heal": "Heal",
-		"pulse": "Pulse",
-	}
-	var shortcuts: Dictionary = {
-		"burst": "1",
-		"heal": "2",
-		"pulse": "3",
-	}
 	for skill_id in skill_buttons:
 		var button: Button = skill_buttons[skill_id]
-		var cost: int = battle_controller.get_skill_cost(skill_id)
-		button.text = "%s (%d) [%s]" % [skill_labels[skill_id], cost, shortcuts[skill_id]]
 		button.disabled = not battle_controller.can_use_skill(skill_id)

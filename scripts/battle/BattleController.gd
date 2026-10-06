@@ -15,7 +15,6 @@ var fall_timer: float = 0.0
 var next_color_index: int = 0
 var combat_manager: CombatManager = CombatManager.new()
 var skill_manager: SkillManager = SkillManager.new()
-const SPAWN_COLORS: Array = ["red", "blue", "green", "yellow"]
 
 func _ready() -> void:
 	event_bus = EventBus.get_instance()
@@ -29,6 +28,8 @@ func _ready() -> void:
 	if battle_manager != null:
 		battle_manager.state_changed.connect(_on_battle_state_changed)
 		battle_manager.start_battle()
+		combat_manager.configure(battle_manager.combat_tuning)
+		skill_manager.configure(battle_manager.skill_catalog, battle_manager.combat_tuning)
 
 	var player_board_view: Node2D = get_node_or_null("PlayerBoardContainer/BoardView")
 	if player_board_view != null:
@@ -43,6 +44,18 @@ func _ready() -> void:
 		combat_manager.set_actor_attack_modifiers(
 			enemy_controller.enemy_state.actor_id,
 			battle_manager.enemy_character.attack_modifiers
+		)
+		combat_manager.set_actor_guard(
+			enemy_controller.player_state.actor_id,
+			battle_manager.player_character.starting_guard
+		)
+		skill_manager.set_energy(
+			enemy_controller.player_state.actor_id,
+			battle_manager.player_character.starting_energy
+		)
+		skill_manager.set_energy(
+			enemy_controller.enemy_state.actor_id,
+			battle_manager.enemy_character.starting_energy
 		)
 
 	_initialize_board()
@@ -79,6 +92,10 @@ func _on_battle_state_changed(_old_state: int, new_state: int) -> void:
 		_spawn_piece()
 
 func _initialize_board() -> void:
+	if battle_manager != null and board_manager != null:
+		board_manager.combat_tuning = battle_manager.combat_tuning
+	if battle_manager != null and enemy_board_manager != null:
+		enemy_board_manager.combat_tuning = battle_manager.combat_tuning
 	if board_manager != null:
 		board_manager.reset_board(Vector2i(6, 10))
 	if enemy_board_manager != null:
@@ -86,7 +103,10 @@ func _initialize_board() -> void:
 	_refresh_board_views()
 
 func _next_spawn_color() -> String:
-	var color_name: String = SPAWN_COLORS[next_color_index % SPAWN_COLORS.size()]
+	var available_colors: Array[String] = battle_manager.player_character.available_colors
+	if available_colors.is_empty():
+		available_colors = ["red", "blue", "green", "yellow"]
+	var color_name: String = available_colors[next_color_index % available_colors.size()]
 	next_color_index += 1
 	return color_name
 
@@ -98,8 +118,27 @@ func _refresh_board_views() -> void:
 	if enemy_board_view != null:
 		enemy_board_view.queue_redraw()
 
-func get_skill_status_text() -> String:
-	return "Energy: %d" % get_skill_energy()
+func get_player_skill_definitions() -> Array[SkillDefinition]:
+	var definitions: Array[SkillDefinition] = []
+	if battle_manager == null:
+		return definitions
+	for skill_id in battle_manager.player_character.skill_ids:
+		var definition: SkillDefinition = skill_manager.get_skill(skill_id)
+		if definition != null:
+			definitions.append(definition)
+	return definitions
+
+func get_skill_for_slot(slot_index: int) -> String:
+	var definitions: Array[SkillDefinition] = get_player_skill_definitions()
+	if slot_index < 0 or slot_index >= definitions.size():
+		return ""
+	return definitions[slot_index].id
+
+func use_skill_slot(slot_index: int) -> bool:
+	var skill_id: String = get_skill_for_slot(slot_index)
+	if skill_id.is_empty():
+		return false
+	return use_skill(skill_id)
 
 func get_skill_energy() -> int:
 	return skill_manager.get_energy(_player_actor_id())
@@ -108,6 +147,19 @@ func get_player_guard() -> int:
 	if enemy_controller == null or enemy_controller.player_state == null:
 		return 0
 	return enemy_controller.combat_manager.get_actor_guard(_player_actor_id())
+
+func get_enemy_guard() -> int:
+	if enemy_controller == null or enemy_controller.enemy_state == null:
+		return 0
+	return enemy_controller.combat_manager.get_actor_guard(enemy_controller.enemy_state.actor_id)
+
+func get_enemy_energy() -> int:
+	if enemy_controller == null or enemy_controller.enemy_state == null:
+		return 0
+	return skill_manager.get_energy(enemy_controller.enemy_state.actor_id)
+
+func get_max_energy() -> int:
+	return skill_manager.max_energy
 
 func get_skill_cost(skill_id: String) -> int:
 	var definition: SkillDefinition = skill_manager.get_skill(skill_id)
@@ -119,6 +171,7 @@ func can_use_skill(skill_id: String) -> bool:
 		cost >= 0
 		and battle_manager != null
 		and enemy_controller != null
+		and battle_manager.player_character.skill_ids.has(skill_id)
 		and battle_manager.can_player_act()
 		and get_skill_energy() >= cost
 	)
@@ -131,13 +184,35 @@ func _player_actor_id() -> String:
 func use_skill(skill_id: String) -> bool:
 	if not can_use_skill(skill_id) or enemy_controller == null:
 		return false
+	return _execute_actor_skill(
+		skill_id,
+		enemy_controller.player_state.actor_id,
+		enemy_controller.enemy_state.actor_id
+	)
 
+func use_enemy_skill(skill_id: String) -> bool:
+	if (
+		battle_manager == null
+		or not battle_manager.can_enemy_act()
+		or enemy_controller == null
+		or not battle_manager.enemy_character.skill_ids.has(skill_id)
+		or get_skill_cost(skill_id) < 0
+		or skill_manager.get_energy(enemy_controller.enemy_state.actor_id) < get_skill_cost(skill_id)
+	):
+		return false
+	return _execute_actor_skill(
+		skill_id,
+		enemy_controller.enemy_state.actor_id,
+		enemy_controller.player_state.actor_id
+	)
+
+func _execute_actor_skill(skill_id: String, source_actor_id: String, target_actor_id: String) -> bool:
 	enemy_controller.prepare_combat()
 	var result: Dictionary = skill_manager.execute_skill(
 		skill_id,
 		enemy_controller.combat_manager,
-		enemy_controller.player_state.actor_id,
-		enemy_controller.enemy_state.actor_id
+		source_actor_id,
+		target_actor_id
 	)
 	if not bool(result.get("success", false)):
 		return false
@@ -151,7 +226,7 @@ func _apply_player_cascade_effects(cascade_result: CascadeManager.CascadeResult)
 		return
 
 	enemy_controller.prepare_combat()
-	for color_id in SPAWN_COLORS:
+	for color_id in combat_manager.get_color_ids():
 		var matched_block_count: int = int(cascade_result.color_block_counts.get(color_id, 0))
 		if matched_block_count <= 0:
 			continue

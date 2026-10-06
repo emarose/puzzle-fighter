@@ -24,11 +24,20 @@ class AttackEvent:
 var actors: Dictionary = {}
 var actor_attack_modifiers: Dictionary = {}
 var actor_guard: Dictionary = {}
-var color_palette: Dictionary = ColorDefinition.default_palette()
+var combat_tuning: CombatTuning = preload("res://resources/combat_tuning.tres")
+var color_palette: Dictionary = {}
 var event_bus: EventBus
 
-func _init() -> void:
+func _init(p_combat_tuning: CombatTuning = null) -> void:
 	event_bus = EventBus.get_instance()
+	configure(p_combat_tuning)
+
+func configure(p_combat_tuning: CombatTuning) -> void:
+	if p_combat_tuning != null:
+		combat_tuning = p_combat_tuning
+	color_palette = combat_tuning.get_color_palette()
+	if color_palette.is_empty():
+		color_palette = ColorDefinition.default_palette()
 
 func register_actor(actor_id: String, max_hp: int, current_hp: int = -1) -> void:
 	var resolved_hp: int = max_hp if current_hp < 0 else current_hp
@@ -36,6 +45,8 @@ func register_actor(actor_id: String, max_hp: int, current_hp: int = -1) -> void
 		"max_hp": max_hp,
 		"current_hp": resolved_hp,
 	}
+	if not actor_guard.has(actor_id):
+		actor_guard[actor_id] = 0
 
 func get_actor_hp(actor_id: String) -> int:
 	if not actors.has(actor_id):
@@ -52,6 +63,12 @@ func calculate_actor_modifier(actor_id: String, color_id: String) -> float:
 func get_actor_guard(actor_id: String) -> int:
 	return int(actor_guard.get(actor_id, 0))
 
+func set_actor_guard(actor_id: String, amount: int) -> int:
+	if actor_id.is_empty():
+		return 0
+	actor_guard[actor_id] = max(0, amount)
+	return get_actor_guard(actor_id)
+
 func grant_guard(actor_id: String, amount: int) -> int:
 	if not actors.has(actor_id) or amount <= 0:
 		return get_actor_guard(actor_id)
@@ -65,6 +82,12 @@ func get_color_definition(color_id: String) -> ColorDefinition:
 	if not color_palette.has(color_id):
 		return null
 	return color_palette[color_id]
+
+func get_color_ids() -> Array[String]:
+	var color_ids: Array[String] = []
+	for color_id in color_palette:
+		color_ids.append(str(color_id))
+	return color_ids
 
 func calculate_color_modifier(color_id: String) -> float:
 	var color_definition: ColorDefinition = get_color_definition(color_id)
@@ -126,38 +149,35 @@ func heal(actor_id: String, amount: int) -> int:
 	return current_hp
 
 func create_attack_event(source: String, target: String, color_id: String, base_damage: int, cascade_count: int = 0, combo_multiplier: float = 1.0, special_effects: Array = []) -> AttackEvent:
-	var cascade_bonus: int = max(0, cascade_count - 1) * 2
+	var cascade_bonus: int = max(0, cascade_count - 1) * combat_tuning.cascade_bonus_per_extra_wave
 	var color_definition: ColorDefinition = get_color_definition(color_id)
 	var color_modifier: float = calculate_color_modifier(color_id)
 	var character_modifier: float = calculate_actor_modifier(source, color_id)
 	var combined_modifier: float = color_modifier * character_modifier * combo_multiplier
+	var effect_multiplier: float = color_definition.effect_multiplier if color_definition != null else 1.0
 	var effect_list: Array = []
 	if special_effects != null:
 		effect_list = special_effects.duplicate()
 
-	var total_amount: int = 0
-	if color_definition == null:
-		total_amount = max(0, int(float(base_damage + cascade_bonus) * combined_modifier))
-		return AttackEvent.new(source, target, color_id, total_amount, cascade_bonus, combo_multiplier, effect_list)
-
-	match color_definition.combat_role:
+	var role: ColorDefinition.CombatRole = ColorDefinition.CombatRole.DAMAGE
+	if color_definition != null:
+		role = color_definition.combat_role
+	var total_amount: int = max(0, int(float(base_damage * effect_multiplier + cascade_bonus) * combined_modifier))
+	match role:
 		ColorDefinition.CombatRole.DAMAGE:
-			total_amount = max(0, int(float(base_damage + cascade_bonus) * combined_modifier))
+			total_amount = max(combat_tuning.damage_floor, total_amount)
 			return AttackEvent.new(source, target, color_id, total_amount, cascade_bonus, combo_multiplier, effect_list)
 		ColorDefinition.CombatRole.DEFENSE:
-			total_amount = max(0, int(float(base_damage * 0.5 + cascade_bonus) * combined_modifier))
 			effect_list.append("guard")
 			return AttackEvent.new(source, source, color_id, total_amount, cascade_bonus, combo_multiplier, effect_list)
 		ColorDefinition.CombatRole.HEAL:
-			total_amount = max(0, int(float(base_damage * 0.75 + cascade_bonus) * combined_modifier))
 			effect_list.append("heal")
 			return AttackEvent.new(source, source, color_id, total_amount, cascade_bonus, combo_multiplier, effect_list)
 		ColorDefinition.CombatRole.ENERGY:
-			total_amount = max(1, int(float(base_damage * 0.4 + cascade_bonus) * combined_modifier)) if base_damage > 0 else 0
+			total_amount = max(1, total_amount) if base_damage > 0 else 0
 			effect_list.append("energy")
 			return AttackEvent.new(source, source, color_id, total_amount, cascade_bonus, combo_multiplier, effect_list)
 		_:
-			total_amount = max(0, int(float(base_damage + cascade_bonus) * combined_modifier))
 			return AttackEvent.new(source, target, color_id, total_amount, cascade_bonus, combo_multiplier, effect_list)
 
 func resolve_attack(source_actor_id: String, target_actor_id: String, color_id: String, base_damage: int, cascade_count: int = 0, combo_multiplier: float = 1.0, special_effects: Array = []) -> AttackEvent:

@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="CombatTuning" format=3 uid="uid://c3ey6o7prkbn7"]
+
+[ext_resource type="Script" uid="uid://ct47b8ugw8ti" path="res://scripts/core/definitions/CombatTuning.gd" id="1_tuning"]
+[ext_resource type="Resource" path="res://resources/colors/red.tres" id="2_red"]
+[ext_resource type="Resource" path="res://resources/colors/blue.tres" id="3_blue"]
+[ext_resource type="Resource" path="res://resources/colors/green.tres" id="4_green"]
+[ext_resource type="Resource" path="res://resources/colors/yellow.tres" id="5_yellow"]
+
+[resource]
+script = ExtResource("1_tuning")
+color_definitions = [ExtResource("2_red"), ExtResource("3_blue"), ExtResource("4_green"), ExtResource("5_yellow")]

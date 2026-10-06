@@ -34,11 +34,11 @@ func _unhandled_input(event: InputEvent) -> void:
         elif event.keycode == KEY_SPACE:
             try_hard_drop()
         elif event.keycode == KEY_1:
-            try_use_skill("burst")
+            try_use_skill_slot(0)
         elif event.keycode == KEY_2:
-            try_use_skill("heal")
+            try_use_skill_slot(1)
         elif event.keycode == KEY_3:
-            try_use_skill("pulse")
+            try_use_skill_slot(2)
         elif event.keycode == KEY_P:
             _toggle_pause()
 
@@ -71,6 +71,16 @@ func try_use_skill(skill_id: String) -> bool:
     return _execute_command("skill_" + skill_id, func() -> bool:
         return battle_controller != null and battle_controller.use_skill(skill_id)
     )
+
+func try_use_skill_slot(slot_index: int) -> bool:
+    if battle_controller == null or not battle_controller.has_method("get_skill_for_slot"):
+        emit_signal("command_executed", "skill_slot_%d" % slot_index, false)
+        return false
+    var skill_id: String = battle_controller.get_skill_for_slot(slot_index)
+    if skill_id.is_empty():
+        emit_signal("command_executed", "skill_slot_%d" % slot_index, false)
+        return false
+    return try_use_skill(skill_id)
 
 func _toggle_pause() -> void:
     emit_signal("command_executed", "pause", true)

@@ -129,7 +129,7 @@ Implement these as `Resource`-based definitions:
 - `ColorDefinition`
   - id
   - name
-  - attack behavior / combat role
+  - attack behavior / combat role and effect multipliers
   - display color
 
 - `CharacterDefinition`
@@ -139,10 +139,13 @@ Implement these as `Resource`-based definitions:
   - attack modifiers
 
 - `EnemyDefinition`
-  - id
-  - max_hp
-  - attack pattern
-  - skill metadata
+  - enemy-specific turn pattern and action timing
+- `CombatantDefinition`
+  - shared HP, starting guard and energy, available colors, skills, and attack modifiers
+- `EnemyTurnPattern`
+  - ordered colors, preferred lanes and shapes, match preference, and optional skill cadence
+- `CombatTuning`
+  - energy cap, damage floor, cascade/combo scaling, and color combat definitions
 
 - `SkillDefinition`
   - id
@@ -158,12 +161,13 @@ Implement these as `Resource`-based definitions:
   - difficulty parameters
 
 ### Steps
-1. Create each resource as a `.tres` or `.gd` data class.
-2. Keep all gameplay definitions data-driven rather than hardcoded in the board logic.
-3. Keep visual metadata separate from combat logic.
+1. Create reusable script classes for each definition and `.tres` profiles for concrete characters, enemies, skills, and combat tuning.
+2. Store shared player/enemy stats in `CombatantDefinition`; keep enemy-only turn behavior in `EnemyTurnPattern`.
+3. Keep all gameplay definitions data-driven rather than hardcoded in the board logic.
+4. Keep visual metadata separate from combat logic.
 
 ### Deliverable
-A flexible definition layer for colors, pieces, players, enemies, and skills.
+A flexible definition layer for colors, pieces, player/enemy profiles, enemy sequencing, combat balance, and skills.
 
 ---
 
@@ -453,8 +457,9 @@ The enemy should:
    - resolve
    - attack
    - wait
-4. Keep the first enemy deterministic and predictable.
-5. Make it visible to the player so the enemy is readable, not “smart” in a complex way.
+4. Configure enemy color, lane, shape, match preference, and optional skill cadence in an `EnemyTurnPattern` resource; tune action speed on `EnemyDefinition`.
+5. Keep the first enemy deterministic and predictable.
+6. Make it visible to the player so the enemy is readable, not “smart” in a complex way.
 
 ### Deliverable
 A simple enemy turn system that produces readable pressure and anticipatory decisions.
@@ -688,6 +693,8 @@ Tune the MVP mechanics to make the loop satisfying without overbuilding systems.
 - combo multiplier
 - enemy attack timing and intensity
 - skill costs and effects
+
+Store combat coefficients and color-role values in `CombatTuning` and `ColorDefinition` resources, and store actor-specific HP, starting guard/energy, skills, and color modifiers in their character/enemy profiles.
 
 ### Steps
 1. Start with simple formulas.

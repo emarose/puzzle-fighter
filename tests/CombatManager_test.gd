@@ -13,8 +13,8 @@ func _init() -> void:
 	assert(event.special_effects.has("burst"))
 
 	manager.set_actor_attack_modifiers("player", {"red": 2.0})
-	var modified_event: CombatManager.AttackEvent = manager.create_attack_event("player", "enemy", "red", 10)
-	assert(modified_event.amount > manager.create_attack_event("enemy", "player", "red", 10).amount)
+	var modified_event: CombatManager.AttackEvent = manager.create_attack_event("player", "enemy", "red", 100)
+	assert(modified_event.amount > manager.create_attack_event("enemy", "player", "red", 100).amount)
 
 	manager.resolve_attack("player", "player", "blue", 10)
 	var player_guard: int = manager.get_actor_guard("player")

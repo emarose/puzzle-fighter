@@ -27,22 +27,41 @@ const RESOLUTION_STATES: Array = [
 var current_state: BattleState = BattleState.INITIALIZING
 @export var player_character: CharacterDefinition
 @export var enemy_character: EnemyDefinition
+@export var combat_tuning: CombatTuning
+@export var skill_catalog: SkillCatalog
 var event_bus: EventBus
 
 func _ready() -> void:
 	event_bus = EventBus.get_instance()
-	_initialize_characters()
 	if current_state == BattleState.INITIALIZING:
 		start_battle()
 
-func _initialize_characters() -> void:
+func _initialize_characters() -> bool:
 	if player_character == null:
-		player_character = CharacterDefinition.new("player", "Player", 100)
+		player_character = load("res://resources/characters/default_player.tres")
 	if enemy_character == null:
-		enemy_character = EnemyDefinition.new("enemy", "Enemy", 100, "standard")
+		enemy_character = load("res://resources/enemies/default_enemy.tres")
+	if player_character == null or enemy_character == null:
+		push_error("BattleManager could not load the player or enemy definition resource.")
+		return false
+	if enemy_character.turn_pattern == null:
+		enemy_character.turn_pattern = load("res://resources/enemies/default_turn_pattern.tres")
+	if player_character.available_colors.is_empty():
+		player_character.available_colors = ["red", "blue", "green", "yellow"]
+	if enemy_character.available_colors.is_empty():
+		enemy_character.available_colors = ["red", "blue", "green", "yellow"]
+	if combat_tuning == null:
+		combat_tuning = load("res://resources/combat_tuning.tres")
+	if skill_catalog == null:
+		skill_catalog = load("res://resources/skills/default_skill_catalog.tres")
+	if combat_tuning == null or skill_catalog == null or enemy_character.turn_pattern == null:
+		push_error("BattleManager could not load combat tuning, skills, or enemy turn pattern resources.")
+		return false
+	return true
 
 func start_battle() -> void:
-	_initialize_characters()
+	if not _initialize_characters():
+		return
 	if current_state == BattleState.PLAYING:
 		return
 

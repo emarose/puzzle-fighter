@@ -8,6 +8,7 @@ const DEFAULT_ROWS: int = 10
 var columns: int = DEFAULT_COLUMNS
 var rows: int = DEFAULT_ROWS
 var cells: Dictionary = {}
+var combat_tuning: CombatTuning = preload("res://resources/combat_tuning.tres")
 
 func _ready() -> void:
 	reset_board()
@@ -186,5 +187,5 @@ func resolve_cascade() -> int:
 
 func resolve_cascade_result(actor_id: String = "") -> CascadeManager.CascadeResult:
 	var cascade_manager := CascadeManager.new()
-	var result: CascadeManager.CascadeResult = cascade_manager.resolve(self, MatchManager.new(), actor_id)
+	var result: CascadeManager.CascadeResult = cascade_manager.resolve(self, MatchManager.new(), actor_id, combat_tuning)
 	return result

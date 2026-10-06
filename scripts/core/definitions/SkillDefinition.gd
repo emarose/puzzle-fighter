@@ -3,7 +3,7 @@ extends Resource
 
 @export var id: String = ""
 @export var name: String = ""
-@export var cost: int = 0
+@export_range(0, 99, 1) var cost: int = 0
 @export var effect_type: String = "damage"
 @export var target: String = "enemy"
 @export var parameters: Dictionary = {}

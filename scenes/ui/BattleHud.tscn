@@ -61,21 +61,3 @@ size_flags_vertical = 3
 [node name="SkillButtons" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_constants/separation = 8
-
-[node name="BurstButton" type="Button" parent="MarginContainer/VBoxContainer/SkillButtons"]
-custom_minimum_size = Vector2(0, 64)
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Burst (3) [1]"
-
-[node name="HealButton" type="Button" parent="MarginContainer/VBoxContainer/SkillButtons"]
-custom_minimum_size = Vector2(0, 64)
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Heal (3) [2]"
-
-[node name="PulseButton" type="Button" parent="MarginContainer/VBoxContainer/SkillButtons"]
-custom_minimum_size = Vector2(0, 64)
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Pulse (2) [3]"
