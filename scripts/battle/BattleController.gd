@@ -99,7 +99,29 @@ func _refresh_board_views() -> void:
 		enemy_board_view.queue_redraw()
 
 func get_skill_status_text() -> String:
-	return "Energy: %d | 1 Burst (3) | 2 Heal (3) | 3 Pulse (2)" % skill_manager.get_energy(_player_actor_id())
+	return "Energy: %d" % get_skill_energy()
+
+func get_skill_energy() -> int:
+	return skill_manager.get_energy(_player_actor_id())
+
+func get_player_guard() -> int:
+	if enemy_controller == null or enemy_controller.player_state == null:
+		return 0
+	return enemy_controller.combat_manager.get_actor_guard(_player_actor_id())
+
+func get_skill_cost(skill_id: String) -> int:
+	var definition: SkillDefinition = skill_manager.get_skill(skill_id)
+	return definition.cost if definition != null else -1
+
+func can_use_skill(skill_id: String) -> bool:
+	var cost: int = get_skill_cost(skill_id)
+	return (
+		cost >= 0
+		and battle_manager != null
+		and enemy_controller != null
+		and battle_manager.can_player_act()
+		and get_skill_energy() >= cost
+	)
 
 func _player_actor_id() -> String:
 	if enemy_controller != null and enemy_controller.player_state != null:
@@ -107,7 +129,7 @@ func _player_actor_id() -> String:
 	return "player"
 
 func use_skill(skill_id: String) -> bool:
-	if battle_manager == null or not battle_manager.can_player_act() or enemy_controller == null:
+	if not can_use_skill(skill_id) or enemy_controller == null:
 		return false
 
 	enemy_controller.prepare_combat()
