@@ -3,8 +3,7 @@ extends CharacterDefinition
 
 @export var current_hp: int = 100
 @export var attack_multiplier: float = 1.0
-@export var skill_ids: Array[String] = ["burst", "heal"]
 
 func _init(p_id: String = "player", p_name: String = "Player", p_max_hp: int = 100) -> void:
-    super._init(p_id, p_name, p_max_hp)
-    current_hp = p_max_hp
+	super._init(p_id, p_name, p_max_hp)
+	current_hp = p_max_hp
