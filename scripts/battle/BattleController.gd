@@ -72,7 +72,7 @@ func _process(delta: float) -> void:
 	if fall_timer >= fall_interval:
 		fall_timer = 0.0
 		if not try_move(Vector2i(0, 1)):
-			lock_active_piece()
+			await lock_active_piece()
 
 func _on_battle_state_changed(_old_state: int, new_state: int) -> void:
 	if new_state == BattleManager.BattleState.ENEMY_ACTION:
@@ -332,7 +332,11 @@ func hard_drop() -> bool:
 
 		active_piece.logical_position = next_position
 
-	return lock_active_piece()
+	call_deferred("_lock_active_piece_after_drop")
+	return true
+
+func _lock_active_piece_after_drop() -> void:
+	await lock_active_piece()
 
 func lock_active_piece() -> bool:
 	if active_piece == null:
@@ -359,7 +363,19 @@ func lock_active_piece() -> bool:
 	active_piece = null
 	_refresh_board_views()
 
-	var cascade_result: CascadeManager.CascadeResult = board_manager.resolve_cascade_result(_player_actor_id())
+	if battle_manager != null and battle_manager.current_state != BattleManager.BattleState.ENEMY_ACTION:
+		battle_manager.set_state(BattleManager.BattleState.RESOLVING)
+
+	var board_view: BoardView = get_node_or_null("PlayerBoardContainer/BoardView") as BoardView
+	var highlight_callback: Callable = (
+		Callable(board_view, "show_match_highlight")
+		if board_view != null
+		else Callable()
+	)
+	var cascade_result: CascadeManager.CascadeResult = await board_manager.resolve_cascade_animated_result(
+		_player_actor_id(),
+		highlight_callback
+	)
 	var cascade_count: int = cascade_result.cascade_count
 	if event_bus != null:
 		event_bus.emit("cascade_resolved", {"cascade_count": cascade_count, "total_blocks_destroyed": cascade_result.total_blocks_destroyed})
@@ -367,9 +383,6 @@ func lock_active_piece() -> bool:
 	_apply_player_cascade_effects(cascade_result)
 	if battle_manager != null and battle_manager.current_state == BattleManager.BattleState.VICTORY:
 		return true
-	if battle_manager != null and battle_manager.current_state != BattleManager.BattleState.ENEMY_ACTION:
-		battle_manager.set_state(BattleManager.BattleState.RESOLVING)
-
 	if battle_manager != null and battle_manager.current_state != BattleManager.BattleState.ENEMY_ACTION:
 		battle_manager.set_state(BattleManager.BattleState.ENEMY_ACTION)
 		return true

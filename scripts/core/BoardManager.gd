@@ -209,3 +209,17 @@ func resolve_cascade_result(actor_id: String = "") -> CascadeManager.CascadeResu
 	var cascade_manager := CascadeManager.new()
 	var result: CascadeManager.CascadeResult = cascade_manager.resolve(self, MatchManager.new(), actor_id, combat_tuning)
 	return result
+
+func resolve_cascade_animated_result(
+	actor_id: String = "",
+	before_destroy: Callable = Callable()
+) -> CascadeManager.CascadeResult:
+	var cascade_manager := CascadeManager.new()
+	var result: CascadeManager.CascadeResult = await cascade_manager.resolve_animated(
+		self,
+		MatchManager.new(),
+		actor_id,
+		combat_tuning,
+		before_destroy
+	)
+	return result

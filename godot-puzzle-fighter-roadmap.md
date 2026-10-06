@@ -609,7 +609,7 @@ Make the logic visible without allowing visuals to drive rules.
 1. Create `BoardView` to render cells, blocks, and backgrounds.
 2. Create `PieceView` to render piece blocks visually.
 3. Add effects for:
-   - match highlight
+   - match highlight (implemented as a brief, color-matched shader outline before each cascade wave is cleared)
    - explosion
    - attack spark
    - damage numbers

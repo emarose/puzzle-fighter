@@ -130,7 +130,18 @@ func execute_turn() -> bool:
 			"lock":
 				success = _lock_active_piece()
 			"resolve":
-				var cascade_result: CascadeManager.CascadeResult = enemy_board_manager.resolve_cascade_result(enemy_state.actor_id)
+				var enemy_board_view: BoardView = battle_controller.get_node_or_null(
+					"EnemyBoardContainer/BoardView"
+				) as BoardView
+				var highlight_callback: Callable = (
+					Callable(enemy_board_view, "show_match_highlight")
+					if enemy_board_view != null
+					else Callable()
+				)
+				var cascade_result: CascadeManager.CascadeResult = await enemy_board_manager.resolve_cascade_animated_result(
+					enemy_state.actor_id,
+					highlight_callback
+				)
 				_refresh_enemy_board()
 				if cascade_result.total_blocks_destroyed > 0:
 					_resolve_enemy_matches(cascade_result)

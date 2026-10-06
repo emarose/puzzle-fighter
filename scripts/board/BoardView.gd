@@ -6,8 +6,10 @@ class_name BoardView
 @export var board_rows: int = 10
 @export var cell_size: Vector2 = Vector2(32, 32)
 @export var board_manager_path: NodePath
+@export var match_highlight_duration: float = 0.4
 
 var board_manager: BoardManager
+@onready var match_outline: BoardMatchOutline = $MatchOutline
 var background_color: Color = Color(0.10, 0.14, 0.18, 1.0)
 var grid_color: Color = Color(0.28, 0.38, 0.46, 1.0)
 
@@ -28,7 +30,13 @@ func _ready() -> void:
     if board_manager != null:
         board_columns = int(board_manager.columns)
         board_rows = int(board_manager.rows)
+    match_outline.configure(Vector2i(board_columns, board_rows), cell_size)
     queue_redraw()
+
+func show_match_highlight(groups: Array) -> void:
+    match_outline.show_groups(groups, board_manager, Callable(self, "color_for_id"))
+    await get_tree().create_timer(match_highlight_duration).timeout
+    match_outline.clear()
 
 func _draw() -> void:
     var width: float = board_columns * cell_size.x
