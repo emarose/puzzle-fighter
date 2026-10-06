@@ -48,3 +48,8 @@ text = "Enemy intent: idle"
 layout_mode = 2
 horizontal_alignment = 1
 text = "Turn: 0"
+
+[node name="SkillStatus" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+horizontal_alignment = 1
+text = "Energy: 0 | 1 Burst (3) | 2 Heal (3) | 3 Pulse (2)"

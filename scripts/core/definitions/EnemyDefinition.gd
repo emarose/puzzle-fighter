@@ -7,6 +7,7 @@ extends Resource
 @export var attack_pattern: String = "standard"
 @export var skill_ids: Array[String] = []
 @export var difficulty: float = 1.0
+@export var attack_modifiers: Dictionary = {}
 @export var metadata: Dictionary = {}
 
 func _init(p_id: String = "", p_name: String = "", p_max_hp: int = 100, p_attack_pattern: String = "standard") -> void:

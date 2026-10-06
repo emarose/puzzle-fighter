@@ -33,6 +33,12 @@ func _unhandled_input(event: InputEvent) -> void:
             try_rotate()
         elif event.keycode == KEY_SPACE:
             try_hard_drop()
+        elif event.keycode == KEY_1:
+            try_use_skill("burst")
+        elif event.keycode == KEY_2:
+            try_use_skill("heal")
+        elif event.keycode == KEY_3:
+            try_use_skill("pulse")
         elif event.keycode == KEY_P:
             _toggle_pause()
 
@@ -59,6 +65,11 @@ func try_rotate() -> bool:
 func try_hard_drop() -> bool:
     return _execute_command("hard_drop", func() -> bool:
         return battle_controller != null and battle_controller.hard_drop()
+    )
+
+func try_use_skill(skill_id: String) -> bool:
+    return _execute_command("skill_" + skill_id, func() -> bool:
+        return battle_controller != null and battle_controller.use_skill(skill_id)
     )
 
 func _toggle_pause() -> void:

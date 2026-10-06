@@ -184,7 +184,7 @@ func resolve_cascade() -> int:
 	var result: CascadeManager.CascadeResult = resolve_cascade_result()
 	return result.cascade_count
 
-func resolve_cascade_result() -> CascadeManager.CascadeResult:
+func resolve_cascade_result(actor_id: String = "") -> CascadeManager.CascadeResult:
 	var cascade_manager := CascadeManager.new()
-	var result: CascadeManager.CascadeResult = cascade_manager.resolve(self, MatchManager.new())
+	var result: CascadeManager.CascadeResult = cascade_manager.resolve(self, MatchManager.new(), actor_id)
 	return result

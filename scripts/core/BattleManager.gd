@@ -25,8 +25,8 @@ const RESOLUTION_STATES: Array = [
 ]
 
 var current_state: BattleState = BattleState.INITIALIZING
-var player_character: CharacterDefinition
-var enemy_character: EnemyDefinition
+@export var player_character: CharacterDefinition
+@export var enemy_character: EnemyDefinition
 var event_bus: EventBus
 
 func _ready() -> void:
@@ -85,13 +85,17 @@ func _transition_to(new_state: BattleState) -> bool:
 	return true
 
 func register_outcome(player_hp: int, enemy_hp: int) -> void:
+	if current_state in [BattleState.VICTORY, BattleState.DEFEAT]:
+		return
 	if enemy_hp <= 0:
-		_transition_to(BattleState.VICTORY)
+		if _transition_to(BattleState.VICTORY) and event_bus != null:
+			event_bus.emit("battle_won", {"enemy_hp": enemy_hp, "player_hp": player_hp})
 		return
 	if player_hp <= 0:
-		_transition_to(BattleState.DEFEAT)
+		if _transition_to(BattleState.DEFEAT) and event_bus != null:
+			event_bus.emit("battle_lost", {"player_hp": player_hp, "enemy_hp": enemy_hp})
 		return
-	if current_state in [BattleState.VICTORY, BattleState.DEFEAT]:
+	if current_state == BattleState.PLAYING:
 		return
 	_transition_to(BattleState.PLAYING)
 
