@@ -1,6 +1,30 @@
 class_name MatchManager
 extends RefCounted
 
+class PreparedGroup:
+	extends RefCounted
+
+	var id: int = -1
+	var color_id: String = ""
+	var cells: Array = []
+	var size: int = 0
+	var is_prepared: bool = true
+	var is_resolving: bool = false
+
+	func _init(p_id: int = -1, p_color_id: String = "", p_cells: Array = [], p_is_prepared: bool = true) -> void:
+		id = p_id
+		color_id = p_color_id
+		cells = p_cells
+		size = cells.size()
+		is_prepared = p_is_prepared
+		is_resolving = false
+
+	func contains_cell(cell: Vector2i) -> bool:
+		for candidate in cells:
+			if typeof(candidate) == TYPE_VECTOR2I and candidate == cell:
+				return true
+		return false
+
 class MatchResult:
 	extends RefCounted
 
@@ -53,6 +77,39 @@ func detect_matches(board: BoardManager) -> MatchResult:
 			affected_colors[first_cell.color_id] = true
 
 	return MatchResult.new(unique_groups, unique_groups.size(), total_blocks_destroyed, affected_colors.keys())
+
+func detect_prepared_groups(board: BoardManager, active_group_map: Dictionary = {}) -> Array:
+	if board == null:
+		return []
+
+	var result: Array = []
+	var match_result: MatchResult = detect_matches(board)
+	if match_result.match_count <= 0:
+		return result
+
+	var next_id: int = 0
+	if active_group_map.has("next_id"):
+		next_id = int(active_group_map.get("next_id", 0))
+
+	for group in match_result.groups:
+		if group.is_empty():
+			continue
+		var color_id: String = board.get_cell(group[0]).color_id
+		var prepared_group: PreparedGroup = PreparedGroup.new(next_id, color_id, group.duplicate(), true)
+		next_id += 1
+		result.append(prepared_group)
+
+	if active_group_map.has("next_id"):
+		active_group_map["next_id"] = next_id
+	return result
+
+func find_group_for_cell(groups: Array, cell: Vector2i) -> PreparedGroup:
+	for group in groups:
+		if group == null:
+			continue
+		if group is PreparedGroup and group.contains_cell(cell):
+			return group
+	return null
 
 func _flood_fill(board: BoardManager, start_position: Vector2i, visited: Dictionary, directions: Array) -> Array:
 	var group: Array = []

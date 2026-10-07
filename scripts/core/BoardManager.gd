@@ -8,15 +8,21 @@ const DEFAULT_ROWS: int = 10
 var columns: int = DEFAULT_COLUMNS
 var rows: int = DEFAULT_ROWS
 var cells: Dictionary = {}
+var prepared_groups: Array = []
+var prepared_group_next_id: int = 0
 var combat_tuning: CombatTuning = preload("res://resources/combat_tuning.tres")
+var event_bus: EventBus
 
 func _ready() -> void:
+	event_bus = EventBus.get_instance()
 	reset_board()
 
 func reset_board(size: Vector2i = Vector2i(DEFAULT_COLUMNS, DEFAULT_ROWS)) -> void:
 	columns = size.x
 	rows = size.y
 	cells.clear()
+	prepared_groups.clear()
+	prepared_group_next_id = 0
 
 	for y in range(rows):
 		for x in range(columns):
@@ -149,6 +155,7 @@ func apply_gravity() -> void:
 			if source_cell != target_cell:
 				set_cell(target_cell, source_data.color_id, source_data.piece_id)
 				set_cell(source_cell, "", "")
+	prepared_groups = refresh_prepared_groups(prepared_groups)
 
 func detect_matches() -> Array:
 	var matches: Array = []
@@ -210,6 +217,76 @@ func resolve_cascade_result(actor_id: String = "") -> CascadeManager.CascadeResu
 	var result: CascadeManager.CascadeResult = cascade_manager.resolve(self, MatchManager.new(), actor_id, combat_tuning)
 	return result
 
+func resolve_prepared_group(group: MatchManager.PreparedGroup, actor_id: String = "") -> Dictionary:
+	if group == null or group.cells.is_empty():
+		return {"resolved": false, "blocks_removed": 0, "color_id": "", "group": null}
+
+	var resolved_index: int = prepared_groups.find(group)
+	if resolved_index >= 0:
+		prepared_groups.remove_at(resolved_index)
+
+	group.is_resolving = true
+	var color_id: String = group.color_id
+	var removed_count: int = 0
+	var group_cells: Array = group.cells.duplicate()
+
+	for cell_position in group_cells:
+		if typeof(cell_position) != TYPE_VECTOR2I:
+			continue
+		if not is_within_bounds(cell_position):
+			continue
+		if is_cell_empty(cell_position):
+			continue
+		clear_cell(cell_position)
+		removed_count += 1
+	if event_bus != null:
+		event_bus.emit("prepared_group_resolved", {"actor_id": actor_id, "color_id": color_id, "blocks_removed": removed_count})
+	apply_gravity()
+	prepared_groups = refresh_prepared_groups(prepared_groups)
+	prepared_groups = detect_prepared_groups_for_board()
+	group.is_prepared = false
+	group.is_resolving = false
+	if event_bus != null:
+		event_bus.emit("prepared_groups_updated", {
+			"actor_id": actor_id,
+			"count": prepared_groups.size(),
+		})
+	return {"resolved": true, "blocks_removed": removed_count, "color_id": color_id, "group": group}
+
+func find_prepared_group_for_cell(groups: Array, cell: Vector2i) -> MatchManager.PreparedGroup:
+	if groups.is_empty():
+		return null
+	for group in groups:
+		if group == null:
+			continue
+		if group is MatchManager.PreparedGroup and group.contains_cell(cell):
+			return group
+	return null
+
+func refresh_prepared_groups(groups: Array) -> Array:
+	var valid_groups: Array = []
+	for group in groups:
+		if group == null:
+			continue
+		if group.cells.is_empty():
+			continue
+		var valid_cells: Array = []
+		for cell_position in group.cells:
+			if typeof(cell_position) != TYPE_VECTOR2I:
+				continue
+			if not is_within_bounds(cell_position):
+				continue
+			if is_cell_empty(cell_position):
+				continue
+			valid_cells.append(cell_position)
+		if valid_cells.size() >= 3:
+			group.cells = valid_cells
+			group.size = valid_cells.size()
+			group.is_prepared = true
+			group.is_resolving = false
+			valid_groups.append(group)
+	return valid_groups
+
 func resolve_cascade_animated_result(
 	actor_id: String = "",
 	before_destroy: Callable = Callable()
@@ -222,4 +299,41 @@ func resolve_cascade_animated_result(
 		combat_tuning,
 		before_destroy
 	)
+	prepared_groups = detect_prepared_groups_for_board()
+	if event_bus != null:
+		event_bus.emit("prepared_groups_updated", {
+			"actor_id": actor_id,
+			"count": prepared_groups.size(),
+		})
 	return result
+
+func detect_prepared_groups_for_board() -> Array:
+	var tracking: Dictionary = {"next_id": prepared_group_next_id}
+	var detected_groups: Array = MatchManager.new().detect_prepared_groups(self, tracking)
+	prepared_group_next_id = int(tracking.get("next_id", prepared_group_next_id))
+	var previous_groups: Array = prepared_groups
+	var synced: Array = []
+	for group in detected_groups:
+		for old_group in previous_groups:
+			if old_group == null or old_group.color_id != group.color_id:
+				continue
+			var overlaps: bool = false
+			for cell_position in group.cells:
+				if old_group.contains_cell(cell_position):
+					overlaps = true
+					break
+			if overlaps:
+				group.id = old_group.id
+				break
+		synced.append(group)
+	prepared_groups = synced
+	return prepared_groups
+
+func _highest_group_id(groups: Array) -> int:
+	var highest: int = -1
+	for group in groups:
+		if group == null:
+			continue
+		if group.id > highest:
+			highest = group.id
+	return highest

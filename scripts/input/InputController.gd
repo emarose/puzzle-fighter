@@ -103,7 +103,17 @@ func _handle_screen_touch(event: InputEventScreenTouch) -> void:
     active_touch_index = -1
     if get_tree().paused or not _can_execute_command():
         return
+
+    if swipe_delta.length() < SWIPE_THRESHOLD:
+        _handle_tap(touch_current_position)
+        return
+
     _execute_swipe(swipe_delta)
+
+func _handle_tap(screen_position: Vector2) -> void:
+    if battle_controller == null or not battle_controller.has_method("try_resolve_prepared_group_at_screen_position"):
+        return
+    battle_controller.try_resolve_prepared_group_at_screen_position(screen_position)
 
 func _handle_screen_drag(event: InputEventScreenDrag) -> void:
     if event.index != active_touch_index:

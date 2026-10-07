@@ -33,18 +33,13 @@ func resolve(board: BoardManager, match_manager: MatchManager = null, actor_id: 
 	var active_tuning: CombatTuning = _get_active_tuning(combat_tuning)
 	var active_match_manager: MatchManager = match_manager if match_manager != null else MatchManager.new()
 	var state: Dictionary = _begin_resolution(actor_id)
-
-	while true:
-		var match_result: MatchManager.MatchResult = _find_match_result(
-			board,
-			active_match_manager,
-			actor_id
-		)
-		if match_result == null:
-			break
-
+	var match_result: MatchManager.MatchResult = _find_match_result(
+		board,
+		active_match_manager,
+		actor_id
+	)
+	if match_result != null:
 		_record_match_round(state, board, match_result)
-		_destroy_match_round(board, match_result, actor_id)
 
 	return _finish_resolution(state, active_tuning, actor_id)
 
@@ -61,20 +56,15 @@ func resolve_animated(
 	var active_tuning: CombatTuning = _get_active_tuning(combat_tuning)
 	var active_match_manager: MatchManager = match_manager if match_manager != null else MatchManager.new()
 	var state: Dictionary = _begin_resolution(actor_id)
-
-	while true:
-		var match_result: MatchManager.MatchResult = _find_match_result(
-			board,
-			active_match_manager,
-			actor_id
-		)
-		if match_result == null:
-			break
-
+	var match_result: MatchManager.MatchResult = _find_match_result(
+		board,
+		active_match_manager,
+		actor_id
+	)
+	if match_result != null:
 		_record_match_round(state, board, match_result)
 		if before_destroy.is_valid():
 			await before_destroy.call(match_result.groups)
-		_destroy_match_round(board, match_result, actor_id)
 
 	return _finish_resolution(state, active_tuning, actor_id)
 

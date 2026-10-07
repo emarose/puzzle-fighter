@@ -288,6 +288,55 @@ func try_move(direction: Vector2i) -> bool:
 		player_piece_view.show_piece(active_piece)
 	return true
 
+func try_resolve_prepared_group(cell: Vector2i) -> bool:
+	if board_manager == null:
+		return false
+	if not board_manager.is_within_bounds(cell):
+		return false
+
+	var group: MatchManager.PreparedGroup = board_manager.find_prepared_group_for_cell(board_manager.prepared_groups, cell)
+	if group == null:
+		return false
+
+	var result: Dictionary = board_manager.resolve_prepared_group(group, _player_actor_id())
+	if not bool(result.get("resolved", false)):
+		return false
+
+	var color_id: String = str(result.get("color_id", ""))
+	var removed_count: int = int(result.get("blocks_removed", 0))
+	var prepared_result: CascadeManager.CascadeResult = CascadeManager.CascadeResult.new(
+		1,
+		1,
+		removed_count,
+		removed_count,
+		1.0,
+		[],
+		{color_id: removed_count}
+	)
+	_apply_player_cascade_effects(prepared_result)
+	var board_view: BoardView = get_node_or_null("PlayerBoardContainer/BoardView") as BoardView
+	if board_view != null and board_view.has_method("show_prepared_highlight"):
+		board_view.show_prepared_highlight(board_manager.prepared_groups)
+	_refresh_board_views()
+
+	if battle_manager != null and battle_manager.current_state != BattleManager.BattleState.ENEMY_ACTION:
+		battle_manager.set_state(BattleManager.BattleState.ENEMY_ACTION)
+	return true
+
+func try_resolve_prepared_group_at_screen_position(screen_position: Vector2) -> bool:
+	var board_view: BoardView = get_node_or_null("PlayerBoardContainer/BoardView") as BoardView
+	if board_view == null:
+		return false
+	if board_manager == null:
+		return false
+	var group: MatchManager.PreparedGroup = board_view.find_prepared_group_at_screen_position(
+		screen_position,
+		board_manager.prepared_groups
+	)
+	if group == null or group.cells.is_empty():
+		return false
+	return try_resolve_prepared_group(group.cells[0])
+
 func try_rotate(clockwise: bool = true) -> bool:
 	if active_piece == null:
 		return false
@@ -376,15 +425,11 @@ func lock_active_piece() -> bool:
 		battle_manager.set_state(BattleManager.BattleState.RESOLVING)
 
 	var board_view: BoardView = get_node_or_null("PlayerBoardContainer/BoardView") as BoardView
-	var highlight_callback: Callable = (
-		Callable(board_view, "show_match_highlight")
-		if board_view != null
-		else Callable()
-	)
 	var cascade_result: CascadeManager.CascadeResult = await board_manager.resolve_cascade_animated_result(
-		_player_actor_id(),
-		highlight_callback
+		_player_actor_id()
 	)
+	if board_view != null:
+		board_view.show_prepared_highlight(board_manager.prepared_groups)
 	var cascade_count: int = cascade_result.cascade_count
 	if event_bus != null:
 		event_bus.emit("cascade_resolved", {

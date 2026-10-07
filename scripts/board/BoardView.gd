@@ -34,9 +34,58 @@ func _ready() -> void:
     queue_redraw()
 
 func show_match_highlight(groups: Array) -> void:
+    if groups.is_empty():
+        match_outline.clear()
+        return
     match_outline.show_groups(groups, board_manager, Callable(self, "color_for_id"))
     await get_tree().create_timer(match_highlight_duration).timeout
     match_outline.clear()
+
+func show_prepared_highlight(groups: Array) -> void:
+    if board_manager == null:
+        return
+    if groups.is_empty():
+        match_outline.clear()
+        return
+    var cell_groups: Array = []
+    for group in groups:
+        if group is MatchManager.PreparedGroup:
+            cell_groups.append(group.cells)
+        elif group is Array:
+            cell_groups.append(group)
+    match_outline.show_groups(cell_groups, board_manager, Callable(self, "color_for_id"))
+    visible = true
+    queue_redraw()
+
+func find_prepared_group_at_screen_position(screen_position: Vector2, groups: Array, padding: float = 10.0) -> MatchManager.PreparedGroup:
+    var local_position: Vector2 = to_local(screen_position)
+    var best: MatchManager.PreparedGroup = null
+    var best_distance: float = INF
+    for group in groups:
+        if not (group is MatchManager.PreparedGroup):
+            continue
+        for cell_position in group.cells:
+            if typeof(cell_position) != TYPE_VECTOR2I:
+                continue
+            var rect := Rect2(Vector2(cell_position) * cell_size, cell_size).grow(padding)
+            if not rect.has_point(local_position):
+                continue
+            var distance: float = rect.get_center().distance_squared_to(local_position)
+            if distance < best_distance:
+                best_distance = distance
+                best = group
+    return best
+
+func screen_position_to_cell(screen_position: Vector2) -> Vector2i:
+    if board_manager == null:
+        return Vector2i(-1, -1)
+    var local_position: Vector2 = to_local(screen_position)
+    var cell_x: int = int(floor(local_position.x / cell_size.x))
+    var cell_y: int = int(floor(local_position.y / cell_size.y))
+    var cell := Vector2i(cell_x, cell_y)
+    if not board_manager.is_within_bounds(cell):
+        return Vector2i(-1, -1)
+    return cell
 
 func _draw() -> void:
     var width: float = board_columns * cell_size.x
