@@ -10,14 +10,22 @@ class PreparedGroup:
 	var size: int = 0
 	var is_prepared: bool = true
 	var is_resolving: bool = false
+	var special_gems: Array = []
 
-	func _init(p_id: int = -1, p_color_id: String = "", p_cells: Array = [], p_is_prepared: bool = true) -> void:
+	func _init(
+		p_id: int = -1,
+		p_color_id: String = "",
+		p_cells: Array = [],
+		p_is_prepared: bool = true,
+		p_special_gems: Array = []
+	) -> void:
 		id = p_id
 		color_id = p_color_id
 		cells = p_cells
 		size = cells.size()
 		is_prepared = p_is_prepared
 		is_resolving = false
+		special_gems = p_special_gems
 
 	func contains_cell(cell: Vector2i) -> bool:
 		for candidate in cells:
@@ -95,7 +103,21 @@ func detect_prepared_groups(board: BoardManager, active_group_map: Dictionary = 
 		if group.is_empty():
 			continue
 		var color_id: String = board.get_cell(group[0]).color_id
-		var prepared_group: PreparedGroup = PreparedGroup.new(next_id, color_id, group.duplicate(), true)
+		var special_gems: Array = []
+		for cell_position in group:
+			var special_gem_id: String = board.get_cell(cell_position).special_gem_id
+			if not special_gem_id.is_empty():
+				special_gems.append({
+					"special_gem_id": special_gem_id,
+					"cell_position": cell_position,
+				})
+		var prepared_group: PreparedGroup = PreparedGroup.new(
+			next_id,
+			color_id,
+			group.duplicate(),
+			true,
+			special_gems
+		)
 		next_id += 1
 		result.append(prepared_group)
 

@@ -42,5 +42,24 @@ func _init() -> void:
 	assert(legacy_piece.get_block_color(0) == "green")
 	assert(legacy_piece.get_block_color(1) == "green")
 
+	var critical_gem: SpecialGemDefinition = SpecialGemDefinition.new(
+		"critical_chance",
+		"Critical Chance",
+		"red",
+		"critical_chance"
+	)
+	var loadout: SpecialGemLoadout = SpecialGemLoadout.new()
+	var equipped_gems: Array[SpecialGemDefinition] = [critical_gem]
+	loadout.selected_gems = equipped_gems
+	loadout.spawn_chance = 1.0
+	var gem_piece: Piece = spawner.create_piece_with_colors(
+		["red", "blue"],
+		Vector2i.ZERO,
+		[Vector2i.ZERO, Vector2i.RIGHT],
+		loadout
+	)
+	assert(gem_piece.blocks[0].get("special_gem_id", "") == "critical_chance")
+	assert(gem_piece.blocks[1].get("special_gem_id", "") == "")
+
 	print("PieceSpawner_test passed")
 	quit()

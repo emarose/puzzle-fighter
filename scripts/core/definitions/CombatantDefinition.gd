@@ -9,6 +9,7 @@ extends Resource
 @export var skill_ids: Array[String] = []
 @export var available_colors: Array[String] = ["red", "blue", "green", "yellow"]
 @export var attack_modifiers: Dictionary = {}
+@export var special_gem_loadout: SpecialGemLoadout
 @export var portrait_path: String = ""
 @export var metadata: Dictionary = {}
 

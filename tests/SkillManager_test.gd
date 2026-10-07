@@ -18,6 +18,10 @@ func _init() -> void:
     assert(result.get("amount", 0) > 0)
     assert(combat_manager.get_actor_hp("enemy") < 100)
     assert(manager.get_energy("player") == 0)
+    manager.set_energy("player", 4)
+    assert(manager.spend_energy("player", 3))
+    assert(manager.get_energy("player") == 1)
+    assert(not manager.spend_energy("player", 2))
 
     combat_manager.resolve_attack("enemy", "player", "yellow", 3)
     assert(manager.get_energy("enemy") > 0)

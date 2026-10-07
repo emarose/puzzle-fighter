@@ -52,6 +52,17 @@ func set_energy(actor_id: String, amount: int) -> int:
 	energy_by_actor[actor_id] = next_energy
 	return next_energy
 
+func spend_energy(actor_id: String, amount: int) -> bool:
+	if actor_id.is_empty() or amount < 0 or get_energy(actor_id) < amount:
+		return false
+	energy_by_actor[actor_id] = get_energy(actor_id) - amount
+	if event_bus != null:
+		event_bus.emit("skill_energy_changed", {
+			"actor_id": actor_id,
+			"energy": get_energy(actor_id),
+		})
+	return true
+
 func _on_event_emitted(event_name: String, payload: Dictionary) -> void:
 	if event_name == "energy_gain":
 		add_energy(str(payload.get("actor_id", "")), int(payload.get("amount", 0)))

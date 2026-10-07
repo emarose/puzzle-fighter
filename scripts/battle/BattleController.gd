@@ -14,6 +14,7 @@ var event_bus: EventBus
 var fall_timer: float = 0.0
 var combat_manager: CombatManager = CombatManager.new()
 var skill_manager: SkillManager = SkillManager.new()
+var special_gem_manager: SpecialGemManager = SpecialGemManager.new()
 
 func _ready() -> void:
 	event_bus = EventBus.get_instance()
@@ -214,11 +215,22 @@ func _execute_actor_skill(skill_id: String, source_actor_id: String, target_acto
 	battle_manager.register_outcome(enemy_controller.player_state.current_hp, enemy_controller.enemy_state.current_hp)
 	return true
 
-func _apply_player_cascade_effects(cascade_result: CascadeManager.CascadeResult) -> void:
-	if cascade_result == null or cascade_result.total_blocks_destroyed <= 0 or enemy_controller == null:
+func _apply_player_cascade_effects(
+	cascade_result: CascadeManager.CascadeResult,
+	special_effects: Array = []
+) -> void:
+	if cascade_result == null or cascade_result.match_count <= 0 or enemy_controller == null:
 		return
 
 	enemy_controller.prepare_combat()
+	var critical_multiplier: float = 1.0
+	for special_effect in special_effects:
+		if str(special_effect.get("effect_type", "")) == "critical_chance":
+			critical_multiplier *= float(
+				special_effect.get("effect_parameters", {}).get("critical_multiplier", 2.0)
+			)
+
+	_apply_special_gem_effects(special_effects)
 	for color_id in combat_manager.get_color_ids():
 		var matched_block_count: int = int(cascade_result.color_block_counts.get(color_id, 0))
 		if matched_block_count <= 0:
@@ -229,13 +241,71 @@ func _apply_player_cascade_effects(cascade_result: CascadeManager.CascadeResult)
 			color_id,
 			matched_block_count,
 			cascade_result.cascade_count,
-			cascade_result.combo_multiplier,
-			[]
+			cascade_result.combo_multiplier * (critical_multiplier if color_id == "red" else 1.0),
+			_special_gem_ids_for_type(special_effects, "critical_chance") if color_id == "red" else []
 		)
 		enemy_controller.apply_attack_event(attack_event)
 		battle_manager.register_outcome(enemy_controller.player_state.current_hp, enemy_controller.enemy_state.current_hp)
 		if battle_manager.current_state == BattleManager.BattleState.VICTORY:
 			return
+
+func _special_gem_ids_for_type(effects: Array, effect_type: String) -> Array:
+	var gem_ids: Array = []
+	for effect in effects:
+		if str(effect.get("effect_type", "")) == effect_type:
+			gem_ids.append(str(effect.get("gem_id", "")))
+	return gem_ids
+
+func _apply_special_gem_effects(effects: Array) -> void:
+	for effect in effects:
+		var gem_id: String = str(effect.get("gem_id", ""))
+		var effect_type: String = str(effect.get("effect_type", ""))
+		var parameters: Dictionary = effect.get("effect_parameters", {})
+		var effect_amount: int = 0
+		match effect_type:
+			"critical_chance":
+				if event_bus != null:
+					event_bus.emit("special_gem_activated", {
+						"actor_id": _player_actor_id(),
+						"gem_id": gem_id,
+						"effect_type": effect_type,
+						"multiplier": float(parameters.get("critical_multiplier", 2.0)),
+					})
+				continue
+			"fireball":
+				if enemy_controller == null or battle_manager == null:
+					continue
+				effect_amount = max(0, int(parameters.get("damage", 0)))
+				var fireball_event: CombatManager.AttackEvent = combat_manager.create_attack_event(
+					_player_actor_id(),
+					enemy_controller.enemy_state.actor_id,
+					"red",
+					effect_amount,
+					0,
+					1.0,
+					[gem_id]
+				)
+				enemy_controller.apply_attack_event(fireball_event)
+				battle_manager.register_outcome(
+					enemy_controller.player_state.current_hp,
+					enemy_controller.enemy_state.current_hp
+				)
+			"barrier":
+				if enemy_controller == null:
+					continue
+				effect_amount = max(0, int(parameters.get("guard", 0)))
+				enemy_controller.combat_manager.grant_guard(_player_actor_id(), effect_amount)
+			_:
+				push_error("Unsupported special gem effect type '%s' for gem '%s'." % [effect_type, gem_id])
+				continue
+
+		if event_bus != null:
+			event_bus.emit("special_gem_activated", {
+				"actor_id": _player_actor_id(),
+				"gem_id": gem_id,
+				"effect_type": effect_type,
+				"amount": effect_amount,
+			})
 
 func _spawn_piece() -> bool:
 	if board_manager == null or battle_manager == null:
@@ -244,7 +314,9 @@ func _spawn_piece() -> bool:
 	var spawn_position := Vector2i(1, 0)
 	active_piece = piece_spawner.create_random_piece(
 		battle_manager.player_character.available_colors,
-		spawn_position
+		spawn_position,
+		[Vector2i.ZERO, Vector2i.RIGHT],
+		battle_manager.player_character.special_gem_loadout
 	)
 	if active_piece == null:
 		return false
@@ -298,21 +370,57 @@ func try_resolve_prepared_group(cell: Vector2i) -> bool:
 	if group == null:
 		return false
 
-	var result: Dictionary = board_manager.resolve_prepared_group(group, _player_actor_id())
-	if not bool(result.get("resolved", false)):
-		return false
+	var loadout: SpecialGemLoadout = null
+	if battle_manager != null and battle_manager.player_character != null:
+		loadout = battle_manager.player_character.special_gem_loadout
+	var equipped_gems: Array[SpecialGemDefinition] = []
+	if loadout != null:
+		equipped_gems = loadout.get_equipped_gems()
+	var gem_result: Dictionary = special_gem_manager.evaluate_group(
+		group.special_gems,
+		group.color_id,
+		group.size,
+		equipped_gems,
+		skill_manager.get_energy(_player_actor_id())
+	)
+	var preserved_cells: Array = []
+	for inactive_gem in gem_result.get("inactive_gems", []):
+		if not bool(inactive_gem.get("remove_when_inactive", true)):
+			preserved_cells.append(inactive_gem.get("cell_position", Vector2i(-1, -1)))
 
-	var color_id: String = str(result.get("color_id", ""))
-	var removed_count: int = int(result.get("blocks_removed", 0))
+	var color_id: String = group.color_id
+	var group_size: int = group.size
+	var expected_removed_count: int = group_size - preserved_cells.size()
+	var special_effects: Array = gem_result.get("effects", [])
 	var prepared_result: CascadeManager.CascadeResult = CascadeManager.CascadeResult.new(
 		1,
 		1,
-		removed_count,
-		removed_count,
+		expected_removed_count,
+		expected_removed_count,
 		1.0,
 		[],
-		{color_id: removed_count}
+		{color_id: group_size}
 	)
+	var energy_spent: int = int(gem_result.get("energy_spent", 0))
+	if energy_spent > 0 and not skill_manager.spend_energy(_player_actor_id(), energy_spent):
+		push_error("Special gem energy changed before the prepared group could be resolved.")
+		return false
+
+	var board_view: BoardView = get_node_or_null("PlayerBoardContainer/BoardView") as BoardView
+	_apply_player_cascade_effects(prepared_result, special_effects)
+	if board_view != null:
+		board_view.play_group_explosion(group)
+
+	var result: Dictionary = board_manager.resolve_prepared_group(
+		group,
+		_player_actor_id(),
+		preserved_cells
+	)
+	if not bool(result.get("resolved", false)):
+		push_error("Prepared group became unavailable while resolving its effects.")
+		return false
+
+	var removed_count: int = int(result.get("blocks_removed", 0))
 	if event_bus != null:
 		event_bus.emit("cascade_resolved", {
 			"actor_id": _player_actor_id(),
@@ -321,8 +429,6 @@ func try_resolve_prepared_group(cell: Vector2i) -> bool:
 			"total_blocks_destroyed": removed_count,
 			"combo_multiplier": 1.0,
 		})
-	_apply_player_cascade_effects(prepared_result)
-	var board_view: BoardView = get_node_or_null("PlayerBoardContainer/BoardView") as BoardView
 	if board_view != null and board_view.has_method("show_prepared_highlight"):
 		board_view.show_prepared_highlight(board_manager.prepared_groups)
 	_refresh_board_views()

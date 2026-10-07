@@ -45,13 +45,19 @@ func get_cell(cell: Vector2i) -> BoardCell:
 
 	return cells[key]
 
-func set_cell(cell: Vector2i, color_id: String, piece_id: String = "") -> bool:
+func set_cell(
+	cell: Vector2i,
+	color_id: String,
+	piece_id: String = "",
+	special_gem_id: String = ""
+) -> bool:
 	if not is_within_bounds(cell):
 		return false
 
 	var target_cell: BoardCell = get_cell(cell)
 	target_cell.color_id = color_id
 	target_cell.piece_id = piece_id
+	target_cell.special_gem_id = special_gem_id
 	target_cell.is_empty = color_id.is_empty()
 	cells[cell_key(cell)] = target_cell
 	return true
@@ -121,19 +127,22 @@ func lock_piece_blocks(blocks: Array, origin: Vector2i, piece_id: String = "") -
 		return []
 	var positions: Array = []
 	var colors: Array[String] = []
+	var special_gem_ids: Array[String] = []
 	for block in blocks:
 		if typeof(block) != TYPE_DICTIONARY:
 			return []
 		var local_position: Variant = block.get("local_position", Vector2i.ZERO)
 		var color_id: String = str(block.get("color_id", ""))
+		var special_gem_id: String = str(block.get("special_gem_id", ""))
 		if typeof(local_position) != TYPE_VECTOR2I or color_id.is_empty():
 			return []
 		positions.append(origin + local_position)
 		colors.append(color_id)
+		special_gem_ids.append(special_gem_id)
 	if not can_place_block_positions(positions):
 		return []
 	for index in range(positions.size()):
-		set_cell(positions[index], colors[index], piece_id)
+		set_cell(positions[index], colors[index], piece_id, special_gem_ids[index])
 	return positions
 
 func apply_gravity() -> void:
@@ -153,7 +162,12 @@ func apply_gravity() -> void:
 			var source_data: BoardCell = get_cell(source_cell)
 			var target_cell: Vector2i = Vector2i(x, y)
 			if source_cell != target_cell:
-				set_cell(target_cell, source_data.color_id, source_data.piece_id)
+				set_cell(
+					target_cell,
+					source_data.color_id,
+					source_data.piece_id,
+					source_data.special_gem_id
+				)
 				set_cell(source_cell, "", "")
 	prepared_groups = refresh_prepared_groups(prepared_groups)
 
@@ -217,18 +231,33 @@ func resolve_cascade_result(actor_id: String = "") -> CascadeManager.CascadeResu
 	var result: CascadeManager.CascadeResult = cascade_manager.resolve(self, MatchManager.new(), actor_id, combat_tuning)
 	return result
 
-func resolve_prepared_group(group: MatchManager.PreparedGroup, actor_id: String = "") -> Dictionary:
-	if group == null or group.cells.is_empty():
-		return {"resolved": false, "blocks_removed": 0, "color_id": "", "group": null}
-
-	var resolved_index: int = prepared_groups.find(group)
-	if resolved_index >= 0:
-		prepared_groups.remove_at(resolved_index)
+func resolve_prepared_group(
+	group: MatchManager.PreparedGroup,
+	actor_id: String = "",
+	preserved_cells: Array = []
+) -> Dictionary:
+	if (
+		group == null
+		or group.cells.is_empty()
+		or group.is_resolving
+		or not prepared_groups.has(group)
+	):
+		return {
+			"resolved": false,
+			"blocks_removed": 0,
+			"color_id": "",
+			"group_size": 0,
+			"special_gems": [],
+			"group": null,
+		}
 
 	group.is_resolving = true
+	prepared_groups.erase(group)
 	var color_id: String = group.color_id
+	var group_size: int = group.cells.size()
 	var removed_count: int = 0
 	var group_cells: Array = group.cells.duplicate()
+	var special_gems: Array = []
 
 	for cell_position in group_cells:
 		if typeof(cell_position) != TYPE_VECTOR2I:
@@ -236,6 +265,14 @@ func resolve_prepared_group(group: MatchManager.PreparedGroup, actor_id: String 
 		if not is_within_bounds(cell_position):
 			continue
 		if is_cell_empty(cell_position):
+			continue
+		var cell: BoardCell = get_cell(cell_position)
+		if not cell.special_gem_id.is_empty():
+			special_gems.append({
+				"special_gem_id": cell.special_gem_id,
+				"cell_position": cell_position,
+			})
+		if preserved_cells.has(cell_position):
 			continue
 		clear_cell(cell_position)
 		removed_count += 1
@@ -251,7 +288,14 @@ func resolve_prepared_group(group: MatchManager.PreparedGroup, actor_id: String 
 			"actor_id": actor_id,
 			"count": prepared_groups.size(),
 		})
-	return {"resolved": true, "blocks_removed": removed_count, "color_id": color_id, "group": group}
+	return {
+		"resolved": true,
+		"blocks_removed": removed_count,
+		"color_id": color_id,
+		"group_size": group_size,
+		"special_gems": special_gems,
+		"group": group,
+	}
 
 func find_prepared_group_for_cell(groups: Array, cell: Vector2i) -> MatchManager.PreparedGroup:
 	if groups.is_empty():

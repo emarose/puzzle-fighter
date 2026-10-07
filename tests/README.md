@@ -1,5 +1,20 @@
 # Test Harness
 
+## Prepared groups and special gems
+
+Run the focused gameplay tests from the project root:
+
+```sh
+godot --headless --path . --script tests/PreparedGroups_test.gd
+godot --headless --path . --script tests/SpecialGemManager_test.gd
+godot --headless --path . --script tests/PieceSpawner_test.gd
+```
+
+The prepared-group test checks that matches persist and grow until tapped, that
+only the tapped group is removed, and that other prepared groups survive.
+The special-gem tests cover color-based spawning, configured activation
+requirements, energy costs, and inactive gems remaining configurable.
+
 ## Mobile input smoke test
 
 Run the scene-level gesture and touch-control test from the project root:

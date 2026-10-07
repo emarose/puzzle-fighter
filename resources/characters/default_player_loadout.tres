@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="SpecialGemLoadout" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/definitions/SpecialGemLoadout.gd" id="1_loadout"]
+[ext_resource type="Resource" path="res://resources/special_gems/critical_chance.tres" id="2_critical"]
+[ext_resource type="Resource" path="res://resources/special_gems/fireball.tres" id="3_fireball"]
+[ext_resource type="Script" path="res://scripts/core/definitions/SpecialGemDefinition.gd" id="4_gem_definition"]
+
+[resource]
+script = ExtResource("1_loadout")
+max_equipped = 2
+spawn_chance = 0.2
+selected_gems = Array[ExtResource("4_gem_definition")]([ExtResource("2_critical"), ExtResource("3_fireball")])

@@ -1,6 +1,7 @@
 [gd_resource type="Resource" script_class="CharacterDefinition" format=3 uid="uid://cqkj3dru4yknb"]
 
 [ext_resource type="Script" uid="uid://dv8ll38fk8uv7" path="res://scripts/core/definitions/CharacterDefinition.gd" id="1_character"]
+[ext_resource type="Resource" path="res://resources/characters/default_player_loadout.tres" id="2_loadout"]
 
 [resource]
 script = ExtResource("1_character")
@@ -8,3 +9,4 @@ id = "player"
 name = "Player"
 max_hp = 100
 skill_ids = Array[String](["burst", "heal", "pulse"])
+special_gem_loadout = ExtResource("2_loadout")

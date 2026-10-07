@@ -26,6 +26,26 @@ func _draw() -> void:
 			cell_size - Vector2(8, 8)
 		)
 		draw_rect(rect, color)
+		if not str(block.get("special_gem_id", "")).is_empty():
+			_draw_special_gem_marker(rect.get_center(), str(block.get("special_gem_id", "")))
+
+func _draw_special_gem_marker(center: Vector2, gem_id: String) -> void:
+	var marker_color: Color = Color.WHITE
+	match gem_id:
+		"critical_chance":
+			marker_color = Color(1.0, 0.92, 0.35, 1.0)
+		"fireball":
+			marker_color = Color(1.0, 0.55, 0.24, 1.0)
+		"barrier":
+			marker_color = Color(0.55, 0.9, 1.0, 1.0)
+	var points := PackedVector2Array([
+		center + Vector2(0, -5),
+		center + Vector2(5, 0),
+		center + Vector2(0, 5),
+		center + Vector2(-5, 0),
+	])
+	draw_colored_polygon(points, marker_color)
+	draw_circle(center, 1.5, Color(0.12, 0.12, 0.16, 1.0))
 
 func color_for_id(color_id: String) -> Color:
 	match color_id:

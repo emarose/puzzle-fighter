@@ -12,6 +12,10 @@ var board_manager: BoardManager
 @onready var match_outline: BoardMatchOutline = $MatchOutline
 var background_color: Color = Color(0.10, 0.14, 0.18, 1.0)
 var grid_color: Color = Color(0.28, 0.38, 0.46, 1.0)
+var explosion_cells: Array = []
+var explosion_progress: float = 0.0
+var explosion_color: Color = Color.WHITE
+var explosion_tween: Tween
 
 func _ready() -> void:
     if not board_manager_path.is_empty():
@@ -55,6 +59,32 @@ func show_prepared_highlight(groups: Array) -> void:
             cell_groups.append(group)
     match_outline.show_groups(cell_groups, board_manager, Callable(self, "color_for_id"))
     visible = true
+    queue_redraw()
+
+func play_group_explosion(group: MatchManager.PreparedGroup) -> void:
+    if group == null or group.cells.is_empty():
+        return
+    if explosion_tween != null and explosion_tween.is_running():
+        explosion_tween.kill()
+    explosion_cells = group.cells.duplicate()
+    explosion_color = color_for_id(group.color_id)
+    explosion_progress = 0.0
+    explosion_tween = create_tween()
+    explosion_tween.tween_method(
+        Callable(self, "_set_explosion_progress"),
+        0.0,
+        1.0,
+        0.24
+    )
+    explosion_tween.tween_callback(Callable(self, "_clear_explosion"))
+
+func _set_explosion_progress(progress: float) -> void:
+    explosion_progress = progress
+    queue_redraw()
+
+func _clear_explosion() -> void:
+    explosion_cells.clear()
+    explosion_tween = null
     queue_redraw()
 
 func find_prepared_group_at_screen_position(screen_position: Vector2, groups: Array, padding: float = 10.0) -> MatchManager.PreparedGroup:
@@ -112,6 +142,47 @@ func _draw() -> void:
                 cell_size - Vector2(8, 8)
             )
             draw_rect(inner_rect, fill_color)
+            if not cell.special_gem_id.is_empty():
+                _draw_special_gem_marker(inner_rect.get_center(), cell.special_gem_id)
+
+    for cell_position in explosion_cells:
+        if typeof(cell_position) != TYPE_VECTOR2I:
+            continue
+        var center: Vector2 = (Vector2(cell_position) + Vector2(0.5, 0.5)) * cell_size
+        var radius: float = 5.0 + 15.0 * explosion_progress
+        var fade: float = 1.0 - explosion_progress
+        var particle_color: Color = Color(
+            explosion_color.r,
+            explosion_color.g,
+            explosion_color.b,
+            fade
+        )
+        draw_circle(center, 3.0 * fade, particle_color)
+        for direction in [Vector2.UP, Vector2.RIGHT, Vector2.DOWN, Vector2.LEFT]:
+            draw_line(
+                center + direction * radius * 0.4,
+                center + direction * radius,
+                particle_color,
+                2.0
+            )
+
+func _draw_special_gem_marker(center: Vector2, gem_id: String) -> void:
+    var marker_color: Color = Color.WHITE
+    match gem_id:
+        "critical_chance":
+            marker_color = Color(1.0, 0.92, 0.35, 1.0)
+        "fireball":
+            marker_color = Color(1.0, 0.55, 0.24, 1.0)
+        "barrier":
+            marker_color = Color(0.55, 0.9, 1.0, 1.0)
+    var points := PackedVector2Array([
+        center + Vector2(0, -5),
+        center + Vector2(5, 0),
+        center + Vector2(0, 5),
+        center + Vector2(-5, 0),
+    ])
+    draw_colored_polygon(points, marker_color)
+    draw_circle(center, 1.5, Color(0.12, 0.12, 0.16, 1.0))
 
 func color_for_id(color_id: String) -> Color:
     match color_id:
