@@ -40,14 +40,14 @@ func show_groups(
 	)
 	image.fill(Color.TRANSPARENT)
 	for group in groups:
-		for position in group:
-			if typeof(position) != TYPE_VECTOR2I or not board.is_within_bounds(position):
+		for cell_pos in group:
+			if typeof(cell_pos) != TYPE_VECTOR2I or not board.is_within_bounds(cell_pos):
 				continue
-			var cell: BoardCell = board.get_cell(position)
+			var cell: BoardCell = board.get_cell(cell_pos)
 			if cell.is_empty:
 				continue
 			var color: Color = color_lookup.call(cell.color_id)
-			image.set_pixel(position.x, position.y, Color(color.r, color.g, color.b, 1.0))
+			image.set_pixel(cell_pos.x, cell_pos.y, Color(color.r, color.g, color.b, 1.0))
 
 	match_colors_texture = ImageTexture.create_from_image(image)
 	outline_material.set_shader_parameter("match_colors", match_colors_texture)

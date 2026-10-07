@@ -138,9 +138,7 @@ func _update_state_summary() -> void:
 			summary = "Battle status"
 	state_label.text = "State: %s (%s)" % [state_name, summary]
 
-func _battle_state_name(state: int) -> String:
-	if battle_manager != null and battle_manager.has_method("BattleState"):
-		pass
+func _battle_state_name(_state: int) -> String:
 	if battle_manager != null and battle_manager.current_state >= 0 and battle_manager.current_state < BattleManager.BattleState.keys().size():
 		return BattleManager.BattleState.keys()[battle_manager.current_state]
 	return "UNKNOWN"

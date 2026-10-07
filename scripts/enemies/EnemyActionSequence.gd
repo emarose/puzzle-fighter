@@ -20,13 +20,14 @@ func get_actions(turn_index: int, board_columns: int, pattern: EnemyTurnPattern 
 	var shape: Array[Vector2i] = [Vector2i.ZERO, Vector2i.RIGHT]
 	if is_vertical:
 		shape[1] = Vector2i.DOWN
+	var start_column: int = int((board_columns - 2) / 2.0)
 	return [
 		{
 			"name": "spawn",
 			"color": color_sequence[safe_turn % color_sequence.size()],
 			"column": preferred_column,
 			"shape": shape,
-			"start_column": clampi((board_columns - 2) / 2, 0, max(0, board_columns - 2)),
+			"start_column": clampi(start_column, 0, max(0, board_columns - 2)),
 		},
 		{"name": "move"},
 		{"name": "rotate"},

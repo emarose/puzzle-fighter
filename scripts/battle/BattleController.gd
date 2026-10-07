@@ -294,7 +294,6 @@ func try_rotate(clockwise: bool = true) -> bool:
 	if battle_manager != null and not (battle_manager.can_player_act() or battle_manager.can_enemy_act()):
 		return false
 
-	var original_positions: Array = active_piece.get_block_positions()
 	var rotated: Array = []
 
 	for offset in active_piece.blocks:
