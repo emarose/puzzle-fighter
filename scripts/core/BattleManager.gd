@@ -114,9 +114,11 @@ func register_outcome(player_hp: int, enemy_hp: int) -> void:
 		if _transition_to(BattleState.DEFEAT) and event_bus != null:
 			event_bus.emit("battle_lost", {"player_hp": player_hp, "enemy_hp": enemy_hp})
 		return
-	if current_state == BattleState.PLAYING:
+	if current_state in [BattleState.PLAYING, BattleState.PIECE_ACTIVE, BattleState.RESOLVING]:
 		return
-	_transition_to(BattleState.PLAYING)
+	if current_state == BattleState.ENEMY_ACTION:
+		_transition_to(BattleState.PLAYING)
+		return
 
 func is_valid_transition(old_state: BattleState, new_state: BattleState) -> bool:
 	match old_state:

@@ -14,6 +14,7 @@ var active_piece: Piece
 var current_attack_preview: String = "idle"
 var turn_counter: int = 0
 var enemy_board_ready: bool = false
+var enemy_turn_in_progress: bool = false
 
 func _ready() -> void:
 	battle_controller = get_parent()
@@ -60,6 +61,9 @@ func sync_combat_states() -> void:
 func is_enemy_ready() -> bool:
 	return enemy_board_ready
 
+func is_enemy_turn_in_progress() -> bool:
+	return enemy_turn_in_progress
+
 func get_current_attack_preview() -> String:
 	return current_attack_preview
 
@@ -74,6 +78,7 @@ func apply_attack_event(event: CombatManager.AttackEvent) -> bool:
 	return true
 
 func execute_turn() -> bool:
+	enemy_turn_in_progress = true
 	var event_bus: EventBus = EventBus.get_instance()
 	if event_bus != null:
 		event_bus.emit("enemy_action_started", {"turn": turn_counter})
@@ -355,6 +360,7 @@ func _refresh_enemy_board() -> void:
 		board_view.queue_redraw()
 
 func _finish_turn(success: bool = true) -> void:
+	enemy_turn_in_progress = false
 	turn_counter += 1
 	var event_bus: EventBus = EventBus.get_instance()
 	if event_bus != null:

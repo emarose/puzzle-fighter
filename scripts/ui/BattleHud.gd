@@ -32,6 +32,7 @@ func _ready() -> void:
 
 func _on_state_changed(_old_state: int, _new_state: int) -> void:
 	_update_hud()
+	_update_state_summary()
 
 func _on_skill_button_pressed(skill_id: String) -> void:
 	if battle_controller == null or not battle_controller.has_method("use_skill"):
@@ -63,28 +64,10 @@ func _build_skill_buttons() -> void:
 func _on_event_emitted(event_name: String, payload: Dictionary) -> void:
 	match event_name:
 		"battle_state_changed":
-			if payload.has("state_name"):
-				state_label.text = "State: %s" % payload["state_name"]
+			_update_hud()
+			_update_state_summary()
 		"hp_changed":
-			var player_actor_id: String = "player"
-			var enemy_actor_id: String = "enemy"
-			if enemy_controller != null:
-				player_actor_id = enemy_controller.player_state.actor_id
-				enemy_actor_id = enemy_controller.enemy_state.actor_id
-			if payload.get("actor_id", "") == player_actor_id:
-				var player_max_hp: int = enemy_controller.player_state.max_hp if enemy_controller != null else 0
-				player_hp_label.text = "%s HP: %d / %d" % [
-					_get_player_name(),
-					int(payload.get("current_hp", 0)),
-					player_max_hp,
-				]
-			elif payload.get("actor_id", "") == enemy_actor_id:
-				var enemy_max_hp: int = enemy_controller.enemy_state.max_hp if enemy_controller != null else 0
-				enemy_hp_label.text = "%s HP: %d / %d" % [
-					_get_enemy_name(),
-					int(payload.get("current_hp", 0)),
-					enemy_max_hp,
-				]
+			_update_hp_from_event(payload)
 		"piece_spawned":
 			enemy_action_label.text = "Enemy intent: piece spawned"
 		"piece_locked":
@@ -129,12 +112,63 @@ func _on_event_emitted(event_name: String, payload: Dictionary) -> void:
 			enemy_action_label.text = "Enemy turn: resolving"
 		"enemy_action_finished":
 			_update_hud()
+			_update_state_summary()
+
+func _update_state_summary() -> void:
+	if battle_manager == null:
+		state_label.text = "State: UNKNOWN"
+		return
+
+	var state_name: String = _battle_state_name(battle_manager.current_state)
+	var summary: String = "Player turn"
+	match battle_manager.current_state:
+		BattleManager.BattleState.PLAYING:
+			summary = "Player turn"
+		BattleManager.BattleState.PIECE_ACTIVE:
+			summary = "Piece active"
+		BattleManager.BattleState.RESOLVING:
+			summary = "Resolving match"
+		BattleManager.BattleState.ENEMY_ACTION:
+			summary = "Enemy turn"
+		BattleManager.BattleState.VICTORY:
+			summary = "Victory"
+		BattleManager.BattleState.DEFEAT:
+			summary = "Defeat"
+		_:
+			summary = "Battle status"
+	state_label.text = "State: %s (%s)" % [state_name, summary]
+
+func _battle_state_name(state: int) -> String:
+	if battle_manager != null and battle_manager.has_method("BattleState"):
+		pass
+	if battle_manager != null and battle_manager.current_state >= 0 and battle_manager.current_state < BattleManager.BattleState.keys().size():
+		return BattleManager.BattleState.keys()[battle_manager.current_state]
+	return "UNKNOWN"
+
+func _update_hp_from_event(payload: Dictionary) -> void:
+	var player_actor_id: String = "player"
+	var enemy_actor_id: String = "enemy"
+	if enemy_controller != null:
+		player_actor_id = enemy_controller.player_state.actor_id
+		enemy_actor_id = enemy_controller.enemy_state.actor_id
+	if payload.get("actor_id", "") == player_actor_id:
+		var player_max_hp: int = enemy_controller.player_state.max_hp if enemy_controller != null else 0
+		player_hp_label.text = "%s HP: %d / %d" % [
+			_get_player_name(),
+			int(payload.get("current_hp", 0)),
+			player_max_hp,
+		]
+	elif payload.get("actor_id", "") == enemy_actor_id:
+		var enemy_max_hp: int = enemy_controller.enemy_state.max_hp if enemy_controller != null else 0
+		enemy_hp_label.text = "%s HP: %d / %d" % [
+			_get_enemy_name(),
+			int(payload.get("current_hp", 0)),
+			enemy_max_hp,
+		]
 
 func _update_hud() -> void:
 	if battle_manager != null:
-		var state_name: String = "UNKNOWN"
-		if battle_manager.current_state >= 0 and battle_manager.current_state < BattleManager.BattleState.keys().size():
-			state_name = BattleManager.BattleState.keys()[battle_manager.current_state]
+		var state_name: String = _battle_state_name(battle_manager.current_state)
 		state_label.text = "State: %s" % state_name
 
 	if enemy_controller != null and enemy_controller.has_method("get_current_attack_preview"):

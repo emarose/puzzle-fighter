@@ -6,6 +6,7 @@ signal command_executed(command_name: String, success: bool)
 @export var battle_controller_path: NodePath
 
 var battle_controller: Node
+var battle_manager: Node
 var movement_map: Dictionary = {
     "left": Vector2i(-1, 0),
     "right": Vector2i(1, 0),
@@ -13,34 +14,61 @@ var movement_map: Dictionary = {
 }
 
 func _ready() -> void:
-    if battle_controller_path.is_empty():
-        battle_controller = get_parent()
-    else:
-        battle_controller = get_node_or_null(battle_controller_path)
+    _refresh_battle_references()
 
 func bind_battle_controller(controller: Node) -> void:
     battle_controller = controller
+    _refresh_battle_references()
+
+func _refresh_battle_references() -> void:
+    if battle_controller == null:
+        if not battle_controller_path.is_empty():
+            battle_controller = get_node_or_null(battle_controller_path)
+        if battle_controller == null:
+            battle_controller = get_parent()
+    if battle_controller != null:
+        battle_manager = battle_controller.get_node_or_null("BattleManager")
+    else:
+        battle_manager = get_node_or_null("BattleManager")
+
+func _can_accept_player_input() -> bool:
+    if battle_manager != null and battle_manager.has_method("can_player_act"):
+        return bool(battle_manager.can_player_act())
+    if battle_controller != null and battle_controller.has_method("can_player_act"):
+        return bool(battle_controller.can_player_act())
+    return true
+
+func _can_execute_command() -> bool:
+    return battle_controller != null and _can_accept_player_input()
 
 func _unhandled_input(event: InputEvent) -> void:
-    if event is InputEventKey and event.pressed:
-        if event.keycode == KEY_LEFT or event.keycode == KEY_A:
+    if not (event is InputEventKey) or not event.pressed:
+        return
+
+    if event.keycode == KEY_P:
+        _toggle_pause()
+        return
+
+    if not _can_execute_command():
+        return
+
+    match event.keycode:
+        KEY_LEFT, KEY_A:
             try_move_left()
-        elif event.keycode == KEY_RIGHT or event.keycode == KEY_D:
+        KEY_RIGHT, KEY_D:
             try_move_right()
-        elif event.keycode == KEY_DOWN or event.keycode == KEY_S:
+        KEY_DOWN, KEY_S:
             try_soft_drop()
-        elif event.keycode == KEY_UP or event.keycode == KEY_W or event.keycode == KEY_X:
+        KEY_UP, KEY_W, KEY_X:
             try_rotate()
-        elif event.keycode == KEY_SPACE:
+        KEY_SPACE:
             try_hard_drop()
-        elif event.keycode == KEY_1:
+        KEY_1:
             try_use_skill_slot(0)
-        elif event.keycode == KEY_2:
+        KEY_2:
             try_use_skill_slot(1)
-        elif event.keycode == KEY_3:
+        KEY_3:
             try_use_skill_slot(2)
-        elif event.keycode == KEY_P:
-            _toggle_pause()
 
 func try_move_left() -> bool:
     return _execute_command("move_left", func() -> bool:
@@ -87,6 +115,9 @@ func _toggle_pause() -> void:
 
 func _execute_command(command_name: String, action: Callable) -> bool:
     if battle_controller == null:
+        emit_signal("command_executed", command_name, false)
+        return false
+    if not _can_accept_player_input():
         emit_signal("command_executed", command_name, false)
         return false
 

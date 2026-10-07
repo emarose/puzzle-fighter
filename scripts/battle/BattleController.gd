@@ -88,6 +88,8 @@ func _on_battle_state_changed(_old_state: int, new_state: int) -> void:
 		return
 
 	if new_state == BattleManager.BattleState.PLAYING and active_piece == null:
+		if enemy_controller != null and enemy_controller.has_method("is_enemy_turn_in_progress") and enemy_controller.is_enemy_turn_in_progress():
+			return
 		_spawn_piece()
 
 func _initialize_board() -> void:
