@@ -8,4 +8,4 @@ script = ExtResource("1_enemy")
 turn_pattern = ExtResource("2_pattern")
 id = "enemy"
 name = "Enemy"
-max_hp = 200
+max_hp = 100

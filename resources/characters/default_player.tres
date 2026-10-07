@@ -6,5 +6,5 @@
 script = ExtResource("1_character")
 id = "player"
 name = "Player"
-max_hp = 200
+max_hp = 100
 skill_ids = Array[String](["burst", "heal", "pulse"])

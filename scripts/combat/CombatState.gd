@@ -2,8 +2,8 @@ class_name CombatState
 extends Resource
 
 @export var actor_id: String = ""
-@export var max_hp: int = 200
-@export var current_hp: int = 200
+@export var max_hp: int = 100
+@export var current_hp: int = 100
 
 func _init(p_actor_id: String = "actor", p_max_hp: int = 100, p_current_hp: int = -1) -> void:
 	actor_id = p_actor_id

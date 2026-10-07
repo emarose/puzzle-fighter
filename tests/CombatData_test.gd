@@ -12,7 +12,7 @@ func _init() -> void:
 	assert(player.skill_ids == ["burst", "heal", "pulse"])
 	assert(enemy.max_hp == 200)
 	assert(enemy.turn_pattern.color_sequence.size() == 8)
-	assert(tuning.damage_floor == 50)
+	assert(tuning.damage_floor == 15)
 	assert(tuning.max_energy == 9)
 	assert(tuning.color_definitions.size() == 4)
 	assert(tuning.get_color_palette().size() == 4)
