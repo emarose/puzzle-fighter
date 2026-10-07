@@ -19,21 +19,6 @@ theme_override_constants/margin_bottom = 16
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
 layout_mode = 2
 
-[node name="TopRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
-layout_mode = 2
-
-[node name="PlayerHP" type="Label" parent="MarginContainer/VBoxContainer/TopRow"]
-layout_mode = 2
-text = "Player HP: 100"
-
-[node name="Spacer" type="Control" parent="MarginContainer/VBoxContainer/TopRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="EnemyHP" type="Label" parent="MarginContainer/VBoxContainer/TopRow"]
-layout_mode = 2
-text = "Enemy HP: 100"
-
 [node name="State" type="Label" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 horizontal_alignment = 1
@@ -48,11 +33,6 @@ text = "Enemy intent: idle"
 layout_mode = 2
 horizontal_alignment = 1
 text = "Turn: 0"
-
-[node name="SkillStatus" type="Label" parent="MarginContainer/VBoxContainer"]
-layout_mode = 2
-horizontal_alignment = 1
-text = "Guard: 0 | Energy: 0 / 9"
 
 [node name="SkillSpacer" type="Control" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2

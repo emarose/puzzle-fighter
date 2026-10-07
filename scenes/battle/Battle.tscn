@@ -12,6 +12,7 @@
 [ext_resource type="Resource" uid="uid://b8l8bte54ukun" path="res://resources/enemies/default_enemy.tres" id="10_enemy"]
 [ext_resource type="Resource" uid="uid://c3ey6o7prkbn7" path="res://resources/combat_tuning.tres" id="11_tuning"]
 [ext_resource type="Resource" uid="uid://3k4pk83oolea" path="res://resources/skills/default_skill_catalog.tres" id="12_skills"]
+[ext_resource type="PackedScene" path="res://scenes/ui/ActorStatusPanel.tscn" id="13_status_panel"]
 
 [node name="Battle" type="Node2D" unique_id=1629196341]
 script = ExtResource("1_4j9m3")
@@ -39,6 +40,9 @@ position = Vector2(95, 160)
 
 [node name="PieceView" parent="PlayerBoardContainer" unique_id=607664759 instance=ExtResource("8_pieceview")]
 
+[node name="ActorStatusPanel" parent="PlayerBoardContainer" instance=ExtResource("13_status_panel")]
+position = Vector2(0, -72)
+
 [node name="EnemyBoardContainer" type="Node2D" parent="." unique_id=716373736]
 position = Vector2(320, 160)
 
@@ -48,5 +52,8 @@ position = Vector2(320, 160)
 script = ExtResource("3_9l2t1")
 
 [node name="PieceView" parent="EnemyBoardContainer" unique_id=1107527921 instance=ExtResource("8_pieceview")]
+
+[node name="ActorStatusPanel" parent="EnemyBoardContainer" instance=ExtResource("13_status_panel")]
+position = Vector2(0, -72)
 
 [node name="BattleHud" parent="." unique_id=1013733575 instance=ExtResource("6_battlehud")]
