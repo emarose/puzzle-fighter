@@ -73,3 +73,8 @@ text = "The battle is paused."
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 text = "Resume (P)"
+
+[node name="Restart" type="Button" parent="Center/Panel/Content"]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+text = "Restart"

@@ -277,7 +277,7 @@ Create an `InputController` abstraction that translates input into board actions
    - swipe left -> move left
    - swipe right -> move right
    - swipe down -> soft drop / fast fall
-   - tap or special gesture -> rotate
+   - swipe up -> rotate
 4. Keep commands as abstract actions rather than direct `InputEvent` calls.
 5. Make debugging easier by allowing keyboard simulation in desktop builds.
 

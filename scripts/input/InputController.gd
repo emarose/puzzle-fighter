@@ -4,10 +4,15 @@ extends Node
 signal command_executed(command_name: String, success: bool)
 signal pause_requested
 
+const SWIPE_THRESHOLD: float = 40.0
+
 @export var battle_controller_path: NodePath
 
 var battle_controller: Node
 var battle_manager: Node
+var active_touch_index: int = -1
+var touch_start_position: Vector2 = Vector2.ZERO
+var touch_current_position: Vector2 = Vector2.ZERO
 var movement_map: Dictionary = {
     "left": Vector2i(-1, 0),
     "right": Vector2i(1, 0),
@@ -44,11 +49,17 @@ func _can_execute_command() -> bool:
     return battle_controller != null and _can_accept_player_input()
 
 func _unhandled_input(event: InputEvent) -> void:
+    if event is InputEventScreenTouch:
+        _handle_screen_touch(event)
+        return
+    if event is InputEventScreenDrag:
+        _handle_screen_drag(event)
+        return
     if not (event is InputEventKey) or not event.pressed or event.is_echo():
         return
 
     if event.keycode == KEY_P:
-        _toggle_pause()
+        try_pause()
         return
 
     if get_tree().paused:
@@ -74,6 +85,43 @@ func _unhandled_input(event: InputEvent) -> void:
             try_use_skill_slot(1)
         KEY_3:
             try_use_skill_slot(2)
+
+func _handle_screen_touch(event: InputEventScreenTouch) -> void:
+    if event.pressed:
+        if active_touch_index >= 0 or get_tree().paused or not _can_execute_command():
+            return
+        active_touch_index = event.index
+        touch_start_position = event.position
+        touch_current_position = event.position
+        return
+
+    if event.index != active_touch_index:
+        return
+
+    touch_current_position = event.position
+    var swipe_delta: Vector2 = touch_current_position - touch_start_position
+    active_touch_index = -1
+    if get_tree().paused or not _can_execute_command():
+        return
+    _execute_swipe(swipe_delta)
+
+func _handle_screen_drag(event: InputEventScreenDrag) -> void:
+    if event.index != active_touch_index:
+        return
+    touch_current_position = event.position
+
+func _execute_swipe(swipe_delta: Vector2) -> void:
+    if swipe_delta.length() < SWIPE_THRESHOLD:
+        return
+    if absf(swipe_delta.x) > absf(swipe_delta.y):
+        if swipe_delta.x < 0.0:
+            try_move_left()
+        else:
+            try_move_right()
+    elif swipe_delta.y < 0.0:
+        try_rotate()
+    else:
+        try_soft_drop()
 
 func try_move_left() -> bool:
     return _execute_command("move_left", func() -> bool:
@@ -115,7 +163,7 @@ func try_use_skill_slot(slot_index: int) -> bool:
         return false
     return try_use_skill(skill_id)
 
-func _toggle_pause() -> void:
+func try_pause() -> void:
     pause_requested.emit()
     emit_signal("command_executed", "pause", true)
 

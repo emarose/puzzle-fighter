@@ -8,6 +8,7 @@ extends CanvasLayer
 @onready var feedback_label: Label = $MarginContainer/VBoxContainer/Feedback
 @onready var turn_label: Label = $MarginContainer/VBoxContainer/Turn
 @onready var skill_buttons_container: HBoxContainer = $MarginContainer/VBoxContainer/SkillButtons
+@onready var mobile_controls: VBoxContainer = $MarginContainer/VBoxContainer/MobileControls
 @onready var battle_overlay: BattleOverlay = $BattleOverlay
 
 var skill_buttons: Dictionary = {}
@@ -42,10 +43,13 @@ func _ready() -> void:
 		battle_manager.state_changed.connect(_on_state_changed)
 	if event_bus != null:
 		event_bus.event_emitted.connect(_on_event_emitted)
-	if input_controller != null and input_controller.has_signal("pause_requested"):
-		input_controller.pause_requested.connect(_on_pause_requested)
+	if input_controller != null:
+		_connect_mobile_controls()
+		if input_controller.has_signal("pause_requested"):
+			input_controller.pause_requested.connect(_on_pause_requested)
 	if battle_overlay != null:
 		battle_overlay.resume_requested.connect(_on_resume_requested)
+		battle_overlay.restart_requested.connect(_on_restart_requested)
 
 	call_deferred("_build_skill_buttons")
 	_update_hud()
@@ -61,11 +65,26 @@ func _on_state_changed(_old_state: int, _new_state: int) -> void:
 	_update_state_summary()
 
 func _on_skill_button_pressed(skill_id: String) -> void:
-	if battle_controller == null or not battle_controller.has_method("use_skill"):
+	if input_controller == null or not input_controller.has_method("try_use_skill"):
 		return
-	if not battle_controller.use_skill(skill_id):
+	if not input_controller.call("try_use_skill", skill_id):
 		return
 	_update_hud()
+
+func _connect_mobile_controls() -> void:
+	var controls: Dictionary = {
+		"MovementControls/MoveLeft": "try_move_left",
+		"MovementControls/SoftDrop": "try_soft_drop",
+		"MovementControls/MoveRight": "try_move_right",
+		"ActionControls/Rotate": "try_rotate",
+		"ActionControls/HardDrop": "try_hard_drop",
+		"ActionControls/Pause": "try_pause",
+	}
+	for button_path: String in controls:
+		var button: Button = mobile_controls.get_node(button_path)
+		var method_name: String = controls[button_path]
+		if input_controller.has_method(method_name):
+			button.pressed.connect(Callable(input_controller, method_name))
 
 func _build_skill_buttons() -> void:
 	if battle_controller == null or not battle_controller.has_method("get_player_skill_definitions"):
@@ -360,6 +379,15 @@ func _on_resume_requested() -> void:
 	battle_pause_active = false
 	battle_overlay.hide_overlay()
 	_update_state_summary()
+
+func _on_restart_requested() -> void:
+	var scene_tree: SceneTree = get_tree()
+	if scene_tree == null:
+		push_error("Cannot restart the battle because the scene tree is unavailable.")
+		return
+	var error: Error = scene_tree.reload_current_scene()
+	if error != OK:
+		push_error("Failed to restart the battle: %s" % error_string(error))
 
 func _show_battle_result(is_victory: bool) -> void:
 	if battle_pause_active and get_tree() != null:
