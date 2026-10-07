@@ -177,5 +177,6 @@ func _finish_resolution(
 			"match_count": result.match_count,
 			"total_blocks": total_blocks_destroyed,
 			"attack_power": attack_power,
+			"combo_multiplier": combo_multiplier,
 		})
 	return result

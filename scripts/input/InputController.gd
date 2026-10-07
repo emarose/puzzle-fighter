@@ -2,6 +2,7 @@ class_name InputController
 extends Node
 
 signal command_executed(command_name: String, success: bool)
+signal pause_requested
 
 @export var battle_controller_path: NodePath
 
@@ -14,6 +15,7 @@ var movement_map: Dictionary = {
 }
 
 func _ready() -> void:
+    process_mode = Node.PROCESS_MODE_ALWAYS
     _refresh_battle_references()
 
 func bind_battle_controller(controller: Node) -> void:
@@ -42,11 +44,14 @@ func _can_execute_command() -> bool:
     return battle_controller != null and _can_accept_player_input()
 
 func _unhandled_input(event: InputEvent) -> void:
-    if not (event is InputEventKey) or not event.pressed:
+    if not (event is InputEventKey) or not event.pressed or event.is_echo():
         return
 
     if event.keycode == KEY_P:
         _toggle_pause()
+        return
+
+    if get_tree().paused:
         return
 
     if not _can_execute_command():
@@ -111,6 +116,7 @@ func try_use_skill_slot(slot_index: int) -> bool:
     return try_use_skill(skill_id)
 
 func _toggle_pause() -> void:
+    pause_requested.emit()
     emit_signal("command_executed", "pause", true)
 
 func _execute_command(command_name: String, action: Callable) -> bool:

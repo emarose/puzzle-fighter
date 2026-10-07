@@ -202,6 +202,7 @@ func apply_attack_event(event: AttackEvent) -> void:
 			"amount": event.amount,
 			"cascade_bonus": event.cascade_bonus,
 			"combo_multiplier": event.combo_multiplier,
+			"role": ColorDefinition.CombatRole.keys()[role],
 		})
 
 	match role:

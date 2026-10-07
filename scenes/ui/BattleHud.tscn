@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://b3s30j0q5v3c2"]
 
 [ext_resource type="Script" path="res://scripts/ui/BattleHud.gd" id="1_3m3du"]
+[ext_resource type="PackedScene" path="res://scenes/ui/BattleOverlay.tscn" id="2_overlay"]
 
 [node name="BattleHud" type="CanvasLayer"]
 script = ExtResource("1_3m3du")
@@ -29,6 +30,34 @@ layout_mode = 2
 horizontal_alignment = 1
 text = "Enemy intent: idle"
 
+[node name="PlayerAction" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+horizontal_alignment = 1
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "Player action: awaiting move"
+
+[node name="EnemySummary" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+horizontal_alignment = 1
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "Enemy action: awaiting turn"
+
+[node name="ChainSummary" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 13
+text = "Combo: 0 | Cascades: 0"
+
+[node name="Feedback" type="Label" parent="MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+horizontal_alignment = 1
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "Battle log: Place pieces to create matches and deal damage."
+
 [node name="Turn" type="Label" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 horizontal_alignment = 1
@@ -41,3 +70,5 @@ size_flags_vertical = 3
 [node name="SkillButtons" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_constants/separation = 8
+
+[node name="BattleOverlay" parent="." instance=ExtResource("2_overlay")]

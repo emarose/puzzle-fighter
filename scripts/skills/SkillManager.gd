@@ -129,6 +129,7 @@ func execute_skill(skill_id: String, combat_manager: CombatManager, source_actor
         event_bus.emit("skill_used", {
             "actor_id": source_actor_id,
             "skill_id": definition.id,
+            "effect_type": effect.type,
             "target_actor": result.target_actor,
             "amount": result.amount,
         })

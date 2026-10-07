@@ -257,6 +257,7 @@ func _spawn_piece() -> bool:
 	active_piece.spawn()
 	if event_bus != null:
 		event_bus.emit("piece_spawned", {
+			"actor_id": _player_actor_id(),
 			"piece_id": active_piece.id,
 			"colors": active_piece.get_color_ids(),
 			"position": active_piece.logical_position,
@@ -313,6 +314,12 @@ func try_rotate(clockwise: bool = true) -> bool:
 	else:
 		active_piece.rotate_counter_clockwise()
 
+	if event_bus != null:
+		event_bus.emit("piece_rotated", {
+			"actor_id": _player_actor_id(),
+			"piece_id": active_piece.id,
+			"orientation": active_piece.orientation,
+		})
 	if player_piece_view != null and player_piece_view.has_method("show_piece"):
 		player_piece_view.show_piece(active_piece)
 	_refresh_board_views()
@@ -355,6 +362,7 @@ func lock_active_piece() -> bool:
 	active_piece.lock()
 	if event_bus != null:
 		event_bus.emit("piece_locked", {
+			"actor_id": _player_actor_id(),
 			"piece_id": active_piece.id,
 			"colors": active_piece.get_color_ids(),
 			"position": active_piece.logical_position,
@@ -379,7 +387,13 @@ func lock_active_piece() -> bool:
 	)
 	var cascade_count: int = cascade_result.cascade_count
 	if event_bus != null:
-		event_bus.emit("cascade_resolved", {"cascade_count": cascade_count, "total_blocks_destroyed": cascade_result.total_blocks_destroyed})
+		event_bus.emit("cascade_resolved", {
+			"actor_id": _player_actor_id(),
+			"cascade_count": cascade_count,
+			"match_count": cascade_result.match_count,
+			"total_blocks_destroyed": cascade_result.total_blocks_destroyed,
+			"combo_multiplier": cascade_result.combo_multiplier,
+		})
 	_refresh_board_views()
 	_apply_player_cascade_effects(cascade_result)
 	if battle_manager != null and battle_manager.current_state == BattleManager.BattleState.VICTORY:
