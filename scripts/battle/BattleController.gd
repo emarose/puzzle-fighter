@@ -313,12 +313,22 @@ func try_resolve_prepared_group(cell: Vector2i) -> bool:
 		[],
 		{color_id: removed_count}
 	)
+	if event_bus != null:
+		event_bus.emit("cascade_resolved", {
+			"actor_id": _player_actor_id(),
+			"cascade_count": 1,
+			"match_count": 1,
+			"total_blocks_destroyed": removed_count,
+			"combo_multiplier": 1.0,
+		})
 	_apply_player_cascade_effects(prepared_result)
 	var board_view: BoardView = get_node_or_null("PlayerBoardContainer/BoardView") as BoardView
 	if board_view != null and board_view.has_method("show_prepared_highlight"):
 		board_view.show_prepared_highlight(board_manager.prepared_groups)
 	_refresh_board_views()
 
+	if battle_manager != null and battle_manager.current_state == BattleManager.BattleState.VICTORY:
+		return true
 	if battle_manager != null and battle_manager.current_state != BattleManager.BattleState.ENEMY_ACTION:
 		battle_manager.set_state(BattleManager.BattleState.ENEMY_ACTION)
 	return true
@@ -430,17 +440,7 @@ func lock_active_piece() -> bool:
 	)
 	if board_view != null:
 		board_view.show_prepared_highlight(board_manager.prepared_groups)
-	var cascade_count: int = cascade_result.cascade_count
-	if event_bus != null:
-		event_bus.emit("cascade_resolved", {
-			"actor_id": _player_actor_id(),
-			"cascade_count": cascade_count,
-			"match_count": cascade_result.match_count,
-			"total_blocks_destroyed": cascade_result.total_blocks_destroyed,
-			"combo_multiplier": cascade_result.combo_multiplier,
-		})
 	_refresh_board_views()
-	_apply_player_cascade_effects(cascade_result)
 	if battle_manager != null and battle_manager.current_state == BattleManager.BattleState.VICTORY:
 		return true
 	if battle_manager != null and battle_manager.current_state != BattleManager.BattleState.ENEMY_ACTION:

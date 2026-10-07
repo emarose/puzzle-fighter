@@ -48,7 +48,8 @@ func resolve_animated(
 	match_manager: MatchManager = null,
 	actor_id: String = "",
 	combat_tuning: CombatTuning = null,
-	before_destroy: Callable = Callable()
+	before_destroy: Callable = Callable(),
+	auto_destroy: bool = false
 ) -> CascadeResult:
 	if board == null:
 		return CascadeResult.new(0, 0, 0, 0, 1.0, [])
@@ -56,15 +57,20 @@ func resolve_animated(
 	var active_tuning: CombatTuning = _get_active_tuning(combat_tuning)
 	var active_match_manager: MatchManager = match_manager if match_manager != null else MatchManager.new()
 	var state: Dictionary = _begin_resolution(actor_id)
-	var match_result: MatchManager.MatchResult = _find_match_result(
-		board,
-		active_match_manager,
-		actor_id
-	)
-	if match_result != null:
+	while true:
+		var match_result: MatchManager.MatchResult = _find_match_result(
+			board,
+			active_match_manager,
+			actor_id
+		)
+		if match_result == null:
+			break
 		_record_match_round(state, board, match_result)
 		if before_destroy.is_valid():
 			await before_destroy.call(match_result.groups)
+		if not auto_destroy:
+			break
+		_destroy_match_round(board, match_result, actor_id)
 
 	return _finish_resolution(state, active_tuning, actor_id)
 

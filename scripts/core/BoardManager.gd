@@ -289,7 +289,8 @@ func refresh_prepared_groups(groups: Array) -> Array:
 
 func resolve_cascade_animated_result(
 	actor_id: String = "",
-	before_destroy: Callable = Callable()
+	before_destroy: Callable = Callable(),
+	auto_destroy: bool = false
 ) -> CascadeManager.CascadeResult:
 	var cascade_manager := CascadeManager.new()
 	var result: CascadeManager.CascadeResult = await cascade_manager.resolve_animated(
@@ -297,7 +298,8 @@ func resolve_cascade_animated_result(
 		MatchManager.new(),
 		actor_id,
 		combat_tuning,
-		before_destroy
+		before_destroy,
+		auto_destroy
 	)
 	prepared_groups = detect_prepared_groups_for_board()
 	if event_bus != null:

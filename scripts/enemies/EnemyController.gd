@@ -145,7 +145,8 @@ func execute_turn() -> bool:
 				)
 				var cascade_result: CascadeManager.CascadeResult = await enemy_board_manager.resolve_cascade_animated_result(
 					enemy_state.actor_id,
-					highlight_callback
+					highlight_callback,
+					true
 				)
 				_refresh_enemy_board()
 				if cascade_result.total_blocks_destroyed > 0:
