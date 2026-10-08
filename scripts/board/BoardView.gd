@@ -16,6 +16,14 @@ var explosion_cells: Array = []
 var explosion_progress: float = 0.0
 var explosion_color: Color = Color.WHITE
 var explosion_tween: Tween
+# Presentation inputs injected by the owner; the view never queries game logic.
+var special_gem_labels: Dictionary = {}
+var gem_status_provider: Callable = Callable()
+
+func set_special_gem_presentation(labels: Dictionary, status_provider: Callable) -> void:
+    special_gem_labels = labels
+    gem_status_provider = status_provider
+    queue_redraw()
 
 func _ready() -> void:
     if not board_manager_path.is_empty():
@@ -143,7 +151,7 @@ func _draw() -> void:
             )
             draw_rect(inner_rect, fill_color)
             if not cell.special_gem_id.is_empty():
-                _draw_special_gem_marker(inner_rect.get_center(), cell.special_gem_id)
+                _draw_special_gem_marker(inner_rect, cell.special_gem_id, Vector2i(x, y))
 
     for cell_position in explosion_cells:
         if typeof(cell_position) != TYPE_VECTOR2I:
@@ -166,23 +174,14 @@ func _draw() -> void:
                 2.0
             )
 
-func _draw_special_gem_marker(center: Vector2, gem_id: String) -> void:
-    var marker_color: Color = Color.WHITE
-    match gem_id:
-        "critical_chance":
-            marker_color = Color(1.0, 0.92, 0.35, 1.0)
-        "fireball":
-            marker_color = Color(1.0, 0.55, 0.24, 1.0)
-        "barrier":
-            marker_color = Color(0.55, 0.9, 1.0, 1.0)
-    var points := PackedVector2Array([
-        center + Vector2(0, -5),
-        center + Vector2(5, 0),
-        center + Vector2(0, 5),
-        center + Vector2(-5, 0),
-    ])
-    draw_colored_polygon(points, marker_color)
-    draw_circle(center, 1.5, Color(0.12, 0.12, 0.16, 1.0))
+func _draw_special_gem_marker(rect: Rect2, gem_id: String, cell_position: Vector2i = Vector2i(-1, -1)) -> void:
+    var label: String = gem_id.substr(0, 1).to_upper()
+    if special_gem_labels.has(gem_id):
+        label = str(special_gem_labels[gem_id])
+    var status: int = SpecialGemGlyph.Status.IDLE
+    if gem_status_provider.is_valid():
+        status = int(gem_status_provider.call(cell_position))
+    SpecialGemGlyph.draw_badge(self, rect, label, status)
 
 func color_for_id(color_id: String) -> Color:
     match color_id:

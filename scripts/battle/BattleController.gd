@@ -59,7 +59,49 @@ func _ready() -> void:
 		)
 
 	_initialize_board()
+	_configure_gem_presentation()
+	if event_bus != null:
+		event_bus.event_emitted.connect(_on_gem_presentation_event)
 	_spawn_piece()
+
+func get_player_special_gems() -> Array[SpecialGemDefinition]:
+	if battle_manager != null and battle_manager.player_character != null:
+		var loadout: SpecialGemLoadout = battle_manager.player_character.special_gem_loadout
+		if loadout != null:
+			return loadout.get_equipped_gems()
+	return []
+
+func _configure_gem_presentation() -> void:
+	var labels: Dictionary = {}
+	for definition in get_player_special_gems():
+		labels[definition.id] = definition.get_short_label()
+	var board_view: BoardView = get_node_or_null("PlayerBoardContainer/BoardView") as BoardView
+	if board_view != null:
+		board_view.set_special_gem_presentation(labels, Callable(self, "get_special_gem_status_at"))
+	if player_piece_view != null:
+		player_piece_view.set_special_gem_labels(labels)
+
+# Read-only readiness of the gem at `cell` for the board's badge styling.
+func get_special_gem_status_at(cell: Vector2i) -> int:
+	if board_manager == null:
+		return SpecialGemGlyph.Status.IDLE
+	var group: MatchManager.PreparedGroup = board_manager.find_prepared_group_for_cell(board_manager.prepared_groups, cell)
+	if group == null:
+		return SpecialGemGlyph.Status.IDLE
+	var board_cell: BoardCell = board_manager.get_cell(cell)
+	var definition: SpecialGemDefinition = null
+	for candidate in get_player_special_gems():
+		if candidate.id == board_cell.special_gem_id:
+			definition = candidate
+	if special_gem_manager.requirements_met(
+		definition, group.color_id, group.size, skill_manager.get_energy(_player_actor_id())
+	):
+		return SpecialGemGlyph.Status.READY
+	return SpecialGemGlyph.Status.BLOCKED
+
+func _on_gem_presentation_event(event_name: String, _payload: Dictionary) -> void:
+	if event_name == "skill_energy_changed":
+		_refresh_board_views()
 
 func _process(delta: float) -> void:
 	if active_piece == null:

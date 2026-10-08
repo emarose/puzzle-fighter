@@ -6,6 +6,7 @@
 script = ExtResource("1_definition")
 id = "critical_chance"
 display_name = "Critical Chance"
+short_label = "C"
 color_id = "red"
 minimum_match_size = 5
 activation_chance = 0.25

@@ -73,6 +73,20 @@ func evaluate_group(
 		"energy_spent": energy_spent,
 	}
 
+# Deterministic, side-effect-free check of a gem's requirements (ignores the chance roll).
+func requirements_met(
+	definition: SpecialGemDefinition,
+	color_id: String,
+	group_size: int,
+	available_energy: int
+) -> bool:
+	return (
+		definition != null
+		and definition.color_id == color_id
+		and group_size >= definition.minimum_match_size
+		and available_energy >= definition.energy_cost
+	)
+
 func _inactive_entry(gem_entry: Dictionary, remove_when_inactive: bool) -> Dictionary:
 	return {
 		"gem_id": str(gem_entry.get("special_gem_id", "")),

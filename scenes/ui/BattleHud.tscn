@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://hvra8fgw06bi" path="res://scripts/ui/BattleHud.gd" id="1_3m3du"]
 [ext_resource type="PackedScene" path="res://scenes/ui/BattleOverlay.tscn" id="2_overlay"]
+[ext_resource type="PackedScene" path="res://scenes/ui/SpecialGemPanel.tscn" id="3_gems"]
 
 [node name="BattleHud" type="CanvasLayer" unique_id=290763512]
 script = ExtResource("1_3m3du")
@@ -22,47 +23,11 @@ theme_override_constants/margin_bottom = 16
 layout_mode = 2
 mouse_filter = 2
 
-[node name="State" type="Label" parent="MarginContainer/VBoxContainer" unique_id=79573727]
-layout_mode = 2
-mouse_filter = 2
-text = "State: PLAYING"
-horizontal_alignment = 1
-
-[node name="EnemyAction" type="Label" parent="MarginContainer/VBoxContainer" unique_id=948276660]
-layout_mode = 2
-mouse_filter = 2
-text = "Enemy intent: idle"
-horizontal_alignment = 1
-
-[node name="PlayerAction" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1010806487]
-layout_mode = 2
-mouse_filter = 2
-theme_override_font_sizes/font_size = 13
-text = "Player action: awaiting move"
-horizontal_alignment = 1
-autowrap_mode = 2
-
-[node name="EnemySummary" type="Label" parent="MarginContainer/VBoxContainer" unique_id=733492766]
-layout_mode = 2
-mouse_filter = 2
-theme_override_font_sizes/font_size = 13
-text = "Enemy action: awaiting turn"
-horizontal_alignment = 1
-autowrap_mode = 2
-
-[node name="ChainSummary" type="Label" parent="MarginContainer/VBoxContainer" unique_id=2020814908]
-layout_mode = 2
-mouse_filter = 2
-theme_override_font_sizes/font_size = 13
-text = "Combo: 0 | Cascades: 0"
-horizontal_alignment = 1
-
 [node name="Feedback" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1759946890]
-custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
 mouse_filter = 2
 theme_override_font_sizes/font_size = 13
-text = "Battle log: Place pieces to create matches and deal damage."
+text = ""
 horizontal_alignment = 1
 autowrap_mode = 2
 
@@ -77,6 +42,9 @@ layout_mode = 2
 size_flags_vertical = 3
 mouse_filter = 2
 
+[node name="SpecialGemPanel" parent="MarginContainer/VBoxContainer" instance=ExtResource("3_gems")]
+layout_mode = 2
+
 [node name="SkillButtons" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=1713829096]
 layout_mode = 2
 mouse_filter = 2
@@ -88,12 +56,6 @@ theme_override_constants/separation = 8
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 8
-
-[node name="GestureHint" type="Label" parent="MarginContainer/VBoxContainer/MobileControls"]
-layout_mode = 2
-mouse_filter = 2
-text = "Swipe: left/right move, up rotate, down soft drop"
-horizontal_alignment = 1
 
 [node name="MovementControls" type="HBoxContainer" parent="MarginContainer/VBoxContainer/MobileControls"]
 layout_mode = 2

@@ -6,6 +6,7 @@
 script = ExtResource("1_definition")
 id = "fireball"
 display_name = "Fireball"
+short_label = "F"
 color_id = "yellow"
 minimum_match_size = 4
 activation_chance = 1.0

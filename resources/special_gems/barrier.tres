@@ -6,6 +6,7 @@
 script = ExtResource("1_definition")
 id = "barrier"
 display_name = "Barrier"
+short_label = "B"
 color_id = "blue"
 minimum_match_size = 4
 activation_chance = 1.0

@@ -97,5 +97,16 @@ func _init() -> void:
 	assert(insufficient_energy.energy_spent == 0)
 	assert(not insufficient_energy.inactive_gems[0].remove_when_inactive)
 
+	var fireball_gem: SpecialGemDefinition = SpecialGemDefinition.new("fireball", "Fireball", "yellow", "fireball")
+	fireball_gem.minimum_match_size = 4
+	fireball_gem.energy_cost = 3
+	fireball_gem.short_label = "f"
+	assert(fireball_gem.get_short_label() == "F")
+	assert(fireball_gem.get_requirement_text() == "4+ 3E")
+	assert(manager.requirements_met(fireball_gem, "yellow", 4, 3))
+	assert(not manager.requirements_met(fireball_gem, "yellow", 3, 3))
+	assert(not manager.requirements_met(fireball_gem, "yellow", 4, 2))
+	assert(not manager.requirements_met(fireball_gem, "red", 4, 3))
+
 	print("SpecialGemManager_test passed")
 	quit()
