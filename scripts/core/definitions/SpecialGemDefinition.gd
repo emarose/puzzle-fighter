@@ -11,7 +11,6 @@ extends Resource
 @export_range(0.0, 100.0, 0.1) var spawn_weight: float = 1.0
 @export var effect_type: String = ""
 @export var effect_parameters: Dictionary = {}
-@export var remove_when_inactive: bool = false
 
 func _init(
 	p_id: String = "",

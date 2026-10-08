@@ -23,17 +23,17 @@ theme_override_constants/margin_bottom = 16
 layout_mode = 2
 mouse_filter = 2
 
+[node name="SpecialGemPanel" parent="MarginContainer/VBoxContainer" unique_id=1557495109 instance=ExtResource("3_gems")]
+layout_mode = 2
+
 [node name="Feedback" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1759946890]
 layout_mode = 2
-mouse_filter = 2
 theme_override_font_sizes/font_size = 13
-text = ""
 horizontal_alignment = 1
 autowrap_mode = 2
 
 [node name="Turn" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1295951989]
 layout_mode = 2
-mouse_filter = 2
 text = "Turn: 0"
 horizontal_alignment = 1
 
@@ -42,63 +42,60 @@ layout_mode = 2
 size_flags_vertical = 3
 mouse_filter = 2
 
-[node name="SpecialGemPanel" parent="MarginContainer/VBoxContainer" instance=ExtResource("3_gems")]
-layout_mode = 2
-
 [node name="SkillButtons" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=1713829096]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 8
 
-[node name="BattleOverlay" parent="." unique_id=1217654048 instance=ExtResource("2_overlay")]
-
-[node name="MobileControls" type="VBoxContainer" parent="MarginContainer/VBoxContainer"]
+[node name="MobileControls" type="VBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=782920892]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 8
 
-[node name="MovementControls" type="HBoxContainer" parent="MarginContainer/VBoxContainer/MobileControls"]
+[node name="MovementControls" type="HBoxContainer" parent="MarginContainer/VBoxContainer/MobileControls" unique_id=1608943131]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 8
 
-[node name="MoveLeft" type="Button" parent="MarginContainer/VBoxContainer/MobileControls/MovementControls"]
+[node name="MoveLeft" type="Button" parent="MarginContainer/VBoxContainer/MobileControls/MovementControls" unique_id=382114686]
 custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Left"
 
-[node name="SoftDrop" type="Button" parent="MarginContainer/VBoxContainer/MobileControls/MovementControls"]
+[node name="SoftDrop" type="Button" parent="MarginContainer/VBoxContainer/MobileControls/MovementControls" unique_id=1545801568]
 custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Down"
 
-[node name="MoveRight" type="Button" parent="MarginContainer/VBoxContainer/MobileControls/MovementControls"]
+[node name="MoveRight" type="Button" parent="MarginContainer/VBoxContainer/MobileControls/MovementControls" unique_id=1046043006]
 custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Right"
 
-[node name="ActionControls" type="HBoxContainer" parent="MarginContainer/VBoxContainer/MobileControls"]
+[node name="ActionControls" type="HBoxContainer" parent="MarginContainer/VBoxContainer/MobileControls" unique_id=1964868956]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 8
 
-[node name="Rotate" type="Button" parent="MarginContainer/VBoxContainer/MobileControls/ActionControls"]
+[node name="Rotate" type="Button" parent="MarginContainer/VBoxContainer/MobileControls/ActionControls" unique_id=2138187789]
 custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Rotate"
 
-[node name="HardDrop" type="Button" parent="MarginContainer/VBoxContainer/MobileControls/ActionControls"]
+[node name="HardDrop" type="Button" parent="MarginContainer/VBoxContainer/MobileControls/ActionControls" unique_id=9511537]
 custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Drop"
 
-[node name="Pause" type="Button" parent="MarginContainer/VBoxContainer/MobileControls/ActionControls"]
+[node name="Pause" type="Button" parent="MarginContainer/VBoxContainer/MobileControls/ActionControls" unique_id=1001831720]
 custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Pause"
+
+[node name="BattleOverlay" parent="." unique_id=1217654048 instance=ExtResource("2_overlay")]

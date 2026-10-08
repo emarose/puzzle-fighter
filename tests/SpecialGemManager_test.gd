@@ -95,7 +95,6 @@ func _init() -> void:
 	)
 	assert(insufficient_energy.effects.is_empty())
 	assert(insufficient_energy.energy_spent == 0)
-	assert(not insufficient_energy.inactive_gems[0].remove_when_inactive)
 
 	var fireball_gem: SpecialGemDefinition = SpecialGemDefinition.new("fireball", "Fireball", "yellow", "fireball")
 	fireball_gem.minimum_match_size = 4

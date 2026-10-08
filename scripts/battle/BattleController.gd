@@ -425,14 +425,10 @@ func try_resolve_prepared_group(cell: Vector2i) -> bool:
 		equipped_gems,
 		skill_manager.get_energy(_player_actor_id())
 	)
-	var preserved_cells: Array = []
-	for inactive_gem in gem_result.get("inactive_gems", []):
-		if not bool(inactive_gem.get("remove_when_inactive", true)):
-			preserved_cells.append(inactive_gem.get("cell_position", Vector2i(-1, -1)))
-
+	# Every gem in an exploded group is consumed; inactive ones act as plain blocks.
 	var color_id: String = group.color_id
 	var group_size: int = group.size
-	var expected_removed_count: int = group_size - preserved_cells.size()
+	var expected_removed_count: int = group_size
 	var special_effects: Array = gem_result.get("effects", [])
 	var prepared_result: CascadeManager.CascadeResult = CascadeManager.CascadeResult.new(
 		1,
@@ -455,8 +451,7 @@ func try_resolve_prepared_group(cell: Vector2i) -> bool:
 
 	var result: Dictionary = board_manager.resolve_prepared_group(
 		group,
-		_player_actor_id(),
-		preserved_cells
+		_player_actor_id()
 	)
 	if not bool(result.get("resolved", false)):
 		push_error("Prepared group became unavailable while resolving its effects.")

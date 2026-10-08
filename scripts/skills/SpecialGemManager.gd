@@ -30,32 +30,32 @@ func evaluate_group(
 		var definition: SpecialGemDefinition = definitions.get(gem_id)
 		if definition == null:
 			push_error("Special gem '%s' is present in a match but is not in the equipped loadout." % gem_id)
-			inactive_gems.append(_inactive_entry(gem_entry, false))
+			inactive_gems.append(_inactive_entry(gem_entry))
 			continue
 
 		var parameters: Dictionary = definition.effect_parameters
 		var effect_type: String = definition.effect_type
 		if not _is_supported_effect(effect_type):
 			push_error("Unsupported special gem effect type '%s' for gem '%s'." % [effect_type, gem_id])
-			inactive_gems.append(_inactive_entry(gem_entry, definition.remove_when_inactive))
+			inactive_gems.append(_inactive_entry(gem_entry))
 			continue
 		if not _has_valid_effect_parameters(definition):
 			push_error("Special gem '%s' has invalid parameters for effect '%s'." % [gem_id, effect_type])
-			inactive_gems.append(_inactive_entry(gem_entry, definition.remove_when_inactive))
+			inactive_gems.append(_inactive_entry(gem_entry))
 			continue
 		if (
 			definition.color_id != color_id
 			or group_size < definition.minimum_match_size
 			or remaining_energy < definition.energy_cost
 		):
-			inactive_gems.append(_inactive_entry(gem_entry, definition.remove_when_inactive))
+			inactive_gems.append(_inactive_entry(gem_entry))
 			continue
 
 		if (
 			definition.activation_chance < 1.0
 			and rng.randf() >= definition.activation_chance
 		):
-			inactive_gems.append(_inactive_entry(gem_entry, definition.remove_when_inactive))
+			inactive_gems.append(_inactive_entry(gem_entry))
 			continue
 
 		effects.append({
@@ -87,11 +87,10 @@ func requirements_met(
 		and available_energy >= definition.energy_cost
 	)
 
-func _inactive_entry(gem_entry: Dictionary, remove_when_inactive: bool) -> Dictionary:
+func _inactive_entry(gem_entry: Dictionary) -> Dictionary:
 	return {
 		"gem_id": str(gem_entry.get("special_gem_id", "")),
 		"cell_position": gem_entry.get("cell_position", Vector2i(-1, -1)),
-		"remove_when_inactive": remove_when_inactive,
 	}
 
 func _is_supported_effect(effect_type: String) -> bool:
