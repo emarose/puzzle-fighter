@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://hvra8fgw06bi" path="res://scripts/ui/BattleHud.gd" id="1_3m3du"]
 [ext_resource type="PackedScene" path="res://scenes/ui/BattleOverlay.tscn" id="2_overlay"]
 [ext_resource type="PackedScene" path="res://scenes/ui/SpecialGemPanel.tscn" id="3_gems"]
+[ext_resource type="PackedScene" path="res://scenes/ui/SpecialGemToast.tscn" id="4_toast"]
 
 [node name="BattleHud" type="CanvasLayer" unique_id=290763512]
 script = ExtResource("1_3m3du")
@@ -36,6 +37,9 @@ autowrap_mode = 2
 layout_mode = 2
 text = "Turn: 0"
 horizontal_alignment = 1
+
+[node name="SpecialGemToast" parent="MarginContainer/VBoxContainer" instance=ExtResource("4_toast")]
+layout_mode = 2
 
 [node name="SkillSpacer" type="Control" parent="MarginContainer/VBoxContainer" unique_id=905252790]
 layout_mode = 2

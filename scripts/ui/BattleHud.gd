@@ -3,6 +3,7 @@ extends CanvasLayer
 @onready var turn_label: Label = $MarginContainer/VBoxContainer/Turn
 @onready var feedback_label: Label = $MarginContainer/VBoxContainer/Feedback
 @onready var special_gem_panel: SpecialGemPanel = $MarginContainer/VBoxContainer/SpecialGemPanel
+@onready var special_gem_toast: SpecialGemToast = $MarginContainer/VBoxContainer/SpecialGemToast
 @onready var skill_buttons_container: HBoxContainer = $MarginContainer/VBoxContainer/SkillButtons
 @onready var mobile_controls: VBoxContainer = $MarginContainer/VBoxContainer/MobileControls
 @onready var battle_overlay: BattleOverlay = $BattleOverlay
@@ -137,7 +138,7 @@ func _on_event_emitted(event_name: String, payload: Dictionary) -> void:
 			])
 		"special_gem_activated":
 			_update_hud()
-			_set_feedback("%s activated" % str(payload.get("gem_id", "")).replace("_", " ").capitalize())
+			_show_special_gem_toast(payload)
 		"attack_created":
 			_set_feedback("%s: %s %d" % [
 				_actor_name(str(payload.get("source", ""))),
@@ -152,6 +153,29 @@ func _on_event_emitted(event_name: String, payload: Dictionary) -> void:
 		"enemy_action_finished":
 			_update_hud()
 			_update_state_summary()
+
+func _show_special_gem_toast(payload: Dictionary) -> void:
+	if special_gem_toast == null:
+		return
+	var gem_id: String = str(payload.get("gem_id", ""))
+	var gem_name: String = gem_id.replace("_", " ").capitalize()
+	var color := Color.WHITE
+	if battle_controller != null and battle_controller.has_method("get_player_special_gems"):
+		for gem in battle_controller.get_player_special_gems():
+			if gem.id == gem_id:
+				gem_name = gem.display_name
+				color = SpecialGemGlyph.color_for_id(gem.color_id)
+	var effect: String
+	match str(payload.get("effect_type", "")):
+		"critical_chance":
+			effect = "Critical hit x%.1f" % float(payload.get("multiplier", 1.0))
+		"fireball":
+			effect = "%d damage to enemy" % int(payload.get("amount", 0))
+		"barrier":
+			effect = "+%d Guard" % int(payload.get("amount", 0))
+		_:
+			effect = "Activated"
+	special_gem_toast.show_line("%s: %s" % [gem_name, effect], color)
 
 func _set_feedback(message: String) -> void:
 	feedback_label.text = message
