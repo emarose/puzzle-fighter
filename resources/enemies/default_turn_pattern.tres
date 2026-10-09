@@ -1,14 +1,7 @@
-[gd_resource type="Resource" script_class="EnemyTurnPattern" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="EnemyTurnPattern" format=3 uid="uid://cukfcdo0n2tt7"]
 
-[ext_resource type="Script" path="res://scripts/core/definitions/EnemyTurnPattern.gd" id="1_pattern"]
+[ext_resource type="Script" uid="uid://dikasx0b8c712" path="res://scripts/core/definitions/EnemyTurnPattern.gd" id="1_pattern"]
 
 [resource]
 script = ExtResource("1_pattern")
-color_sequence = Array[String](["red", "blue", "green", "yellow", "red", "green", "blue", "yellow"])
-preferred_column_step = 2
-vertical_piece_every = 3
-match_priority = 100
-color_preference = 10
-column_preference = 5
-shape_preference = 2
-skill_use_every_turns = 0
+color_sequence = Array[String](["red", "blue", "green", "yellow", "green", "green", "blue", "yellow"])

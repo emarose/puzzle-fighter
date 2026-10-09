@@ -48,6 +48,13 @@ func _can_accept_player_input() -> bool:
 func _can_execute_command() -> bool:
     return battle_controller != null and _can_accept_player_input()
 
+func _can_resolve_prepared_group() -> bool:
+    if battle_controller == null:
+        return false
+    if battle_manager == null:
+        return true
+    return battle_manager.can_player_act() or battle_manager.can_enemy_act()
+
 func _unhandled_input(event: InputEvent) -> void:
     if event is InputEventScreenTouch:
         _handle_screen_touch(event)
@@ -88,7 +95,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _handle_screen_touch(event: InputEventScreenTouch) -> void:
     if event.pressed:
-        if active_touch_index >= 0 or get_tree().paused or not _can_execute_command():
+        if active_touch_index >= 0 or get_tree().paused or not _can_resolve_prepared_group():
             return
         active_touch_index = event.index
         touch_start_position = event.position
@@ -101,13 +108,16 @@ func _handle_screen_touch(event: InputEventScreenTouch) -> void:
     touch_current_position = event.position
     var swipe_delta: Vector2 = touch_current_position - touch_start_position
     active_touch_index = -1
-    if get_tree().paused or not _can_execute_command():
+    if get_tree().paused:
         return
 
     if swipe_delta.length() < SWIPE_THRESHOLD:
-        _handle_tap(touch_current_position)
+        if _can_resolve_prepared_group():
+            _handle_tap(touch_current_position)
         return
 
+    if not _can_execute_command():
+        return
     _execute_swipe(swipe_delta)
 
 func _handle_tap(screen_position: Vector2) -> void:

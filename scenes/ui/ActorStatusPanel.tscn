@@ -31,8 +31,8 @@ corner_radius_bottom_right = 3
 corner_radius_bottom_left = 3
 
 [node name="ActorStatusPanel" type="PanelContainer"]
-custom_minimum_size = Vector2(192, 72)
-offset_right = 192.0
+custom_minimum_size = Vector2(240, 72)
+offset_right = 240.0
 offset_bottom = 72.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")

@@ -34,7 +34,7 @@ script = ExtResource("4_enemies")
 script = ExtResource("5_input")
 
 [node name="PlayerBoardContainer" type="Node2D" parent="." unique_id=820351956]
-position = Vector2(95, 380)
+position = Vector2(12, 260)
 
 [node name="BoardView" parent="PlayerBoardContainer" unique_id=359752603 instance=ExtResource("7_boardview")]
 
@@ -45,7 +45,7 @@ offset_top = -72.0
 offset_bottom = 0.0
 
 [node name="EnemyBoardContainer" type="Node2D" parent="." unique_id=716373736]
-position = Vector2(320, 380)
+position = Vector2(288, 260)
 
 [node name="BoardView" parent="EnemyBoardContainer" unique_id=1614741143 instance=ExtResource("7_boardview")]
 

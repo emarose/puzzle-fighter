@@ -38,7 +38,7 @@ layout_mode = 2
 text = "Turn: 0"
 horizontal_alignment = 1
 
-[node name="SpecialGemToast" parent="MarginContainer/VBoxContainer" instance=ExtResource("4_toast")]
+[node name="SpecialGemToast" parent="MarginContainer/VBoxContainer" unique_id=1040314002 instance=ExtResource("4_toast")]
 layout_mode = 2
 
 [node name="SkillSpacer" type="Control" parent="MarginContainer/VBoxContainer" unique_id=905252790]

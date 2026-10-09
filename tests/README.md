@@ -6,12 +6,18 @@ Run the focused gameplay tests from the project root:
 
 ```sh
 godot --headless --path . --script tests/PreparedGroups_test.gd
+godot --headless --path . --script tests/PreparedGroupTouchTarget_test.gd
+godot --headless --path . --script tests/PreparedGroupEnemyTurnInput_test.gd
 godot --headless --path . --script tests/SpecialGemManager_test.gd
 godot --headless --path . --script tests/PieceSpawner_test.gd
 ```
 
 The prepared-group test checks that matches persist and grow until tapped, that
 only the tapped group is removed, and that other prepared groups survive.
+The touch-target test verifies a prepared chain can be tapped through the
+empty space enclosed by its highlighted cells.
+The enemy-turn input test verifies prepared matches remain tappable while the
+enemy is acting, without enabling other player controls.
 The special-gem tests cover color-based spawning, configured activation
 requirements, energy costs, and inactive gems remaining configurable.
 

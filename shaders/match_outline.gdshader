@@ -4,7 +4,7 @@ render_mode unshaded;
 uniform sampler2D match_colors : filter_nearest, repeat_disable;
 uniform vec2 board_dimensions = vec2(6.0, 10.0);
 uniform vec2 cell_dimensions = vec2(32.0, 32.0);
-uniform float outline_width_px = 2.0;
+uniform float outline_width_px = 3.0;
 
 bool is_matched_cell(vec2 cell) {
 	if (cell.x < 0.0

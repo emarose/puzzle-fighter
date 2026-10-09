@@ -4,7 +4,7 @@ extends Node2D
 const OUTLINE_SHADER: Shader = preload("res://shaders/match_outline.gdshader")
 
 var board_dimensions: Vector2i = Vector2i(6, 10)
-var cell_dimensions: Vector2 = Vector2(32, 32)
+var cell_dimensions: Vector2 = Vector2(40, 40)
 var outline_material: ShaderMaterial
 var match_colors_texture: ImageTexture
 

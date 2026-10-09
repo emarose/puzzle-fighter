@@ -4,7 +4,7 @@ class_name BoardView
 
 @export var board_columns: int = 6
 @export var board_rows: int = 10
-@export var cell_size: Vector2 = Vector2(32, 32)
+@export var cell_size: Vector2 = Vector2(40, 40)
 @export var board_manager_path: NodePath
 @export var match_highlight_duration: float = 0.4
 
@@ -95,24 +95,32 @@ func _clear_explosion() -> void:
     explosion_tween = null
     queue_redraw()
 
-func find_prepared_group_at_screen_position(screen_position: Vector2, groups: Array, padding: float = 10.0) -> MatchManager.PreparedGroup:
+func find_prepared_group_at_screen_position(screen_position: Vector2, groups: Array, padding: float = 12.0) -> MatchManager.PreparedGroup:
     var local_position: Vector2 = to_local(screen_position)
     var best: MatchManager.PreparedGroup = null
     var best_distance: float = INF
     for group in groups:
         if not (group is MatchManager.PreparedGroup):
             continue
-        for cell_position in group.cells:
-            if typeof(cell_position) != TYPE_VECTOR2I:
-                continue
-            var rect := Rect2(Vector2(cell_position) * cell_size, cell_size).grow(padding)
-            if not rect.has_point(local_position):
-                continue
-            var distance: float = rect.get_center().distance_squared_to(local_position)
-            if distance < best_distance:
-                best_distance = distance
-                best = group
+        var touch_rect := _prepared_group_touch_rect(group, padding)
+        if touch_rect.size == Vector2.ZERO or not touch_rect.has_point(local_position):
+            continue
+        var distance: float = touch_rect.get_center().distance_squared_to(local_position)
+        if distance < best_distance:
+            best_distance = distance
+            best = group
     return best
+
+func _prepared_group_touch_rect(group: MatchManager.PreparedGroup, padding: float) -> Rect2:
+    var bounds := Rect2()
+    var has_cells := false
+    for cell_position in group.cells:
+        if typeof(cell_position) != TYPE_VECTOR2I:
+            continue
+        var cell_rect := Rect2(Vector2(cell_position) * cell_size, cell_size)
+        bounds = cell_rect if not has_cells else bounds.merge(cell_rect)
+        has_cells = true
+    return bounds.grow(padding) if has_cells else Rect2()
 
 func screen_position_to_cell(screen_position: Vector2) -> Vector2i:
     if board_manager == null:
@@ -145,9 +153,10 @@ func _draw() -> void:
                 continue
 
             var fill_color: Color = color_for_id(cell.color_id)
+            var cell_inset := cell_size.x * 0.125
             var inner_rect: Rect2 = Rect2(
-                Vector2(x * cell_size.x + 4, y * cell_size.y + 4),
-                cell_size - Vector2(8, 8)
+                Vector2(x * cell_size.x + cell_inset, y * cell_size.y + cell_inset),
+                cell_size - Vector2(cell_inset * 2.0, cell_inset * 2.0)
             )
             draw_rect(inner_rect, fill_color)
             if not cell.special_gem_id.is_empty():
