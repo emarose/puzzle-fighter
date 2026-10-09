@@ -7,6 +7,7 @@ class_name BoardView
 @export var cell_size: Vector2 = Vector2(40, 40)
 @export var board_manager_path: NodePath
 @export var match_highlight_duration: float = 0.4
+@export var gravity_fall_seconds_per_cell: float = 0.06
 
 var board_manager: BoardManager
 @onready var match_outline: BoardMatchOutline = $MatchOutline
@@ -16,6 +17,9 @@ var explosion_cells: Array = []
 var explosion_progress: float = 0.0
 var explosion_color: Color = Color.WHITE
 var explosion_tween: Tween
+var gravity_movements: Array = []
+var gravity_cells_fallen: int = 0
+var gravity_tween: Tween
 # Presentation inputs injected by the owner; the view never queries game logic.
 var special_gem_labels: Dictionary = {}
 var gem_status_provider: Callable = Callable()
@@ -42,6 +46,8 @@ func _ready() -> void:
     if board_manager != null:
         board_columns = int(board_manager.columns)
         board_rows = int(board_manager.rows)
+        if not board_manager.gravity_applied.is_connected(_animate_gravity):
+            board_manager.gravity_applied.connect(_animate_gravity)
     match_outline.configure(Vector2i(board_columns, board_rows), cell_size)
     queue_redraw()
 
@@ -95,6 +101,42 @@ func _clear_explosion() -> void:
     explosion_tween = null
     queue_redraw()
 
+func _animate_gravity(movements: Array) -> void:
+    if movements.is_empty():
+        return
+    if gravity_tween != null and gravity_tween.is_running():
+        gravity_tween.kill()
+
+    gravity_movements = movements.duplicate(true)
+    gravity_cells_fallen = 0
+    var longest_fall: int = 1
+    for movement in gravity_movements:
+        var source: Vector2i = movement.get("from", Vector2i.ZERO)
+        var destination: Vector2i = movement.get("to", source)
+        longest_fall = maxi(longest_fall, destination.y - source.y)
+
+    gravity_tween = create_tween()
+    gravity_tween.tween_method(
+        Callable(self, "_set_gravity_cells_fallen"),
+        0.0,
+        float(longest_fall),
+        longest_fall * gravity_fall_seconds_per_cell
+    )
+    gravity_tween.tween_callback(Callable(self, "_clear_gravity_animation"))
+
+# Whole cells only, so blocks hop cell by cell instead of sliding.
+func _set_gravity_cells_fallen(cells: float) -> void:
+    var whole_cells: int = int(floor(cells))
+    if whole_cells != gravity_cells_fallen:
+        gravity_cells_fallen = whole_cells
+        queue_redraw()
+
+func _clear_gravity_animation() -> void:
+    gravity_movements.clear()
+    gravity_cells_fallen = 0
+    gravity_tween = null
+    queue_redraw()
+
 func find_prepared_group_at_screen_position(screen_position: Vector2, groups: Array, padding: float = 12.0) -> MatchManager.PreparedGroup:
     var local_position: Vector2 = to_local(screen_position)
     var best: MatchManager.PreparedGroup = null
@@ -146,9 +188,17 @@ func _draw() -> void:
     if board_manager == null:
         return
 
+    var animated_destinations: Dictionary = {}
+    for movement in gravity_movements:
+        var destination: Vector2i = movement.get("to", Vector2i(-1, -1))
+        animated_destinations[board_manager.cell_key(destination)] = true
+
     for y in range(board_rows):
         for x in range(board_columns):
-            var cell: BoardCell = board_manager.get_cell(Vector2i(x, y))
+            var cell_position := Vector2i(x, y)
+            if animated_destinations.has(board_manager.cell_key(cell_position)):
+                continue
+            var cell: BoardCell = board_manager.get_cell(cell_position)
             if cell.is_empty:
                 continue
 
@@ -161,6 +211,21 @@ func _draw() -> void:
             draw_rect(inner_rect, fill_color)
             if not cell.special_gem_id.is_empty():
                 _draw_special_gem_marker(inner_rect, cell.special_gem_id, Vector2i(x, y))
+
+    for movement in gravity_movements:
+        var source: Vector2i = movement.get("from", Vector2i.ZERO)
+        var destination: Vector2i = movement.get("to", source)
+        var fall_distance: int = destination.y - source.y
+        var position := Vector2(source.x, source.y + mini(gravity_cells_fallen, fall_distance))
+        var cell_inset := cell_size.x * 0.125
+        var inner_rect := Rect2(
+            position * cell_size + Vector2(cell_inset, cell_inset),
+            cell_size - Vector2(cell_inset * 2.0, cell_inset * 2.0)
+        )
+        draw_rect(inner_rect, color_for_id(str(movement.get("color_id", ""))))
+        var gem_id: String = str(movement.get("special_gem_id", ""))
+        if not gem_id.is_empty():
+            _draw_special_gem_marker(inner_rect, gem_id)
 
     for cell_position in explosion_cells:
         if typeof(cell_position) != TYPE_VECTOR2I:

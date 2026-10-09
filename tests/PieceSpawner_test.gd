@@ -28,8 +28,12 @@ func _init() -> void:
 		mixed_piece.id
 	)
 	assert(locked_positions.size() == 2)
-	assert(board.get_cell(Vector2i(1, 1)).color_id == "red")
-	assert(board.get_cell(Vector2i(2, 1)).color_id == "blue")
+	assert(locked_positions.has(Vector2i(1, 9)))
+	assert(locked_positions.has(Vector2i(2, 9)))
+	assert(board.get_cell(Vector2i(1, 9)).color_id == "red")
+	assert(board.get_cell(Vector2i(2, 9)).color_id == "blue")
+	assert(board.is_cell_empty(Vector2i(1, 1)))
+	assert(board.is_cell_empty(Vector2i(2, 1)))
 
 	var invalid_piece: Piece = spawner.create_piece_with_colors(
 		["green", "yellow"],

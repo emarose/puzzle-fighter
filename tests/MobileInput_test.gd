@@ -79,8 +79,10 @@ func _run() -> void:
 		"BattleHud/MarginContainer/VBoxContainer/MobileControls/ActionControls/HardDrop"
 	)
 	hard_drop_button.pressed.emit()
-	await process_frame
-	await process_frame
+	for _frame in range(300):
+		if piece.is_locked:
+			break
+		await process_frame
 	assert(piece.is_locked)
 
 	print("MobileInput_test passed")

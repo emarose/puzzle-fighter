@@ -5,6 +5,8 @@ class_name BoardManager
 const DEFAULT_COLUMNS: int = 6
 const DEFAULT_ROWS: int = 10
 
+signal gravity_applied(movements: Array)
+
 var columns: int = DEFAULT_COLUMNS
 var rows: int = DEFAULT_ROWS
 var cells: Dictionary = {}
@@ -143,9 +145,20 @@ func lock_piece_blocks(blocks: Array, origin: Vector2i, piece_id: String = "") -
 		return []
 	for index in range(positions.size()):
 		set_cell(positions[index], colors[index], piece_id, special_gem_ids[index])
-	return positions
 
-func apply_gravity() -> void:
+	# Each block falls independently if nothing supports it.
+	var settled_positions: Array = []
+	for position in positions:
+		var cells_below: int = 0
+		for y in range(position.y + 1, rows):
+			if not is_cell_empty(Vector2i(position.x, y)):
+				cells_below += 1
+		settled_positions.append(Vector2i(position.x, rows - 1 - cells_below))
+	apply_gravity()
+	return settled_positions
+
+func apply_gravity() -> Array:
+	var movements: Array = []
 	for x in range(columns):
 		var column_cells: Array = []
 		for y in range(rows - 1, -1, -1):
@@ -162,6 +175,12 @@ func apply_gravity() -> void:
 			var source_data: BoardCell = get_cell(source_cell)
 			var target_cell: Vector2i = Vector2i(x, y)
 			if source_cell != target_cell:
+				movements.append({
+					"from": source_cell,
+					"to": target_cell,
+					"color_id": source_data.color_id,
+					"special_gem_id": source_data.special_gem_id,
+				})
 				set_cell(
 					target_cell,
 					source_data.color_id,
@@ -170,6 +189,9 @@ func apply_gravity() -> void:
 				)
 				set_cell(source_cell, "", "")
 	prepared_groups = refresh_prepared_groups(prepared_groups)
+	if not movements.is_empty():
+		gravity_applied.emit(movements)
+	return movements
 
 func detect_matches() -> Array:
 	var matches: Array = []

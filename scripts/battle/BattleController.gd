@@ -7,6 +7,7 @@ extends Node
 @onready var enemy_board_manager: Node = $EnemyBoardContainer.get_node_or_null("BoardManager")
 
 @export var fall_interval: float = 0.75
+@export var hard_drop_seconds_per_cell: float = 0.04
 
 var piece_spawner: PieceSpawner = PieceSpawner.new()
 var active_piece: Piece
@@ -15,6 +16,7 @@ var fall_timer: float = 0.0
 var combat_manager: CombatManager = CombatManager.new()
 var skill_manager: SkillManager = SkillManager.new()
 var special_gem_manager: SpecialGemManager = SpecialGemManager.new()
+var is_hard_dropping: bool = false
 
 func _ready() -> void:
 	event_bus = EventBus.get_instance()
@@ -105,6 +107,8 @@ func _on_gem_presentation_event(event_name: String, _payload: Dictionary) -> voi
 
 func _process(delta: float) -> void:
 	if active_piece == null:
+		return
+	if is_hard_dropping:
 		return
 	if battle_manager == null:
 		return
@@ -528,24 +532,18 @@ func try_rotate(clockwise: bool = true) -> bool:
 	return true
 
 func hard_drop() -> bool:
-	if active_piece == null:
+	if active_piece == null or is_hard_dropping:
 		return false
 
-	while true:
-		var next_position := active_piece.logical_position + Vector2i(0, 1)
-		var candidate_positions: Array = []
-		for position in active_piece.get_block_positions():
-			candidate_positions.append(position + Vector2i(0, 1))
-
-		if not board_manager.can_place_block_positions(candidate_positions, Vector2i.ZERO):
-			break
-
-		active_piece.logical_position = next_position
-
-	call_deferred("_lock_active_piece_after_drop")
+	is_hard_dropping = true
+	call_deferred("_run_hard_drop")
 	return true
 
-func _lock_active_piece_after_drop() -> void:
+# Steps the piece down one cell at a time, like the natural fall.
+func _run_hard_drop() -> void:
+	while active_piece != null and try_move(Vector2i.DOWN):
+		await get_tree().create_timer(hard_drop_seconds_per_cell).timeout
+	is_hard_dropping = false
 	await lock_active_piece()
 
 func lock_active_piece() -> bool:
