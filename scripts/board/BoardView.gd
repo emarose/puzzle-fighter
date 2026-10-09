@@ -10,7 +10,7 @@ class_name BoardView
 @export var gravity_fall_seconds_per_cell: float = 0.06
 
 var board_manager: BoardManager
-@onready var match_outline: BoardMatchOutline = $MatchOutline
+@onready var match_fill: BoardMatchFill = $MatchFill
 var background_color: Color = Color(0.10, 0.14, 0.18, 1.0)
 var grid_color: Color = Color(0.28, 0.38, 0.46, 1.0)
 var explosion_cells: Array = []
@@ -48,22 +48,22 @@ func _ready() -> void:
         board_rows = int(board_manager.rows)
         if not board_manager.gravity_applied.is_connected(_animate_gravity):
             board_manager.gravity_applied.connect(_animate_gravity)
-    match_outline.configure(Vector2i(board_columns, board_rows), cell_size)
+    match_fill.configure(Vector2i(board_columns, board_rows), cell_size)
     queue_redraw()
 
 func show_match_highlight(groups: Array) -> void:
     if groups.is_empty():
-        match_outline.clear()
+        match_fill.clear()
         return
-    match_outline.show_groups(groups, board_manager, Callable(self, "color_for_id"))
+    match_fill.show_groups(groups, board_manager, Callable(self, "color_for_id"))
     await get_tree().create_timer(match_highlight_duration).timeout
-    match_outline.clear()
+    match_fill.clear()
 
 func show_prepared_highlight(groups: Array) -> void:
     if board_manager == null:
         return
     if groups.is_empty():
-        match_outline.clear()
+        match_fill.clear()
         return
     var cell_groups: Array = []
     for group in groups:
@@ -71,7 +71,7 @@ func show_prepared_highlight(groups: Array) -> void:
             cell_groups.append(group.cells)
         elif group is Array:
             cell_groups.append(group)
-    match_outline.show_groups(cell_groups, board_manager, Callable(self, "color_for_id"))
+    match_fill.show_groups(cell_groups, board_manager, Callable(self, "color_for_id"))
     visible = true
     queue_redraw()
 
