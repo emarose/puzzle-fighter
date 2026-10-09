@@ -74,14 +74,12 @@ func get_player_special_gems() -> Array[SpecialGemDefinition]:
 	return []
 
 func _configure_gem_presentation() -> void:
-	var labels: Dictionary = {}
-	for definition in get_player_special_gems():
-		labels[definition.id] = definition.get_short_label()
+	var icons: Dictionary = SpecialGemGlyph.icons_by_id(get_player_special_gems())
 	var board_view: BoardView = get_node_or_null("PlayerBoardContainer/BoardView") as BoardView
 	if board_view != null:
-		board_view.set_special_gem_presentation(labels, Callable(self, "get_special_gem_status_at"))
+		board_view.set_special_gem_presentation(icons, Callable(self, "get_special_gem_status_at"))
 	if player_piece_view != null:
-		player_piece_view.set_special_gem_labels(labels)
+		player_piece_view.set_special_gem_icons(icons)
 
 # Read-only readiness of the gem at `cell` for the board's badge styling.
 func get_special_gem_status_at(cell: Vector2i) -> int:

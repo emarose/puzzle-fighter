@@ -21,11 +21,11 @@ var gravity_movements: Array = []
 var gravity_cells_fallen: int = 0
 var gravity_tween: Tween
 # Presentation inputs injected by the owner; the view never queries game logic.
-var special_gem_labels: Dictionary = {}
+var special_gem_icons: Dictionary = {}
 var gem_status_provider: Callable = Callable()
 
-func set_special_gem_presentation(labels: Dictionary, status_provider: Callable) -> void:
-    special_gem_labels = labels
+func set_special_gem_presentation(icons: Dictionary, status_provider: Callable) -> void:
+    special_gem_icons = icons
     gem_status_provider = status_provider
     queue_redraw()
 
@@ -249,13 +249,11 @@ func _draw() -> void:
             )
 
 func _draw_special_gem_marker(rect: Rect2, gem_id: String, cell_position: Vector2i = Vector2i(-1, -1)) -> void:
-    var label: String = gem_id.substr(0, 1).to_upper()
-    if special_gem_labels.has(gem_id):
-        label = str(special_gem_labels[gem_id])
+    var icon: Texture2D = special_gem_icons.get(gem_id) as Texture2D
     var status: int = SpecialGemGlyph.Status.IDLE
     if gem_status_provider.is_valid():
         status = int(gem_status_provider.call(cell_position))
-    SpecialGemGlyph.draw_badge(self, rect, label, status)
+    SpecialGemGlyph.draw_badge(self, rect, icon, status)
 
 func color_for_id(color_id: String) -> Color:
     match color_id:

@@ -29,13 +29,13 @@ func _draw() -> void:
 		draw_rect(rect, color)
 		if not str(block.get("special_gem_id", "")).is_empty():
 			var gem_id: String = str(block.get("special_gem_id", ""))
-			var label: String = str(special_gem_labels.get(gem_id, gem_id.substr(0, 1).to_upper()))
-			SpecialGemGlyph.draw_badge(self, rect, label, SpecialGemGlyph.Status.IDLE)
+			var icon: Texture2D = special_gem_icons.get(gem_id) as Texture2D
+			SpecialGemGlyph.draw_badge(self, rect, icon, SpecialGemGlyph.Status.IDLE)
 
-var special_gem_labels: Dictionary = {}
+var special_gem_icons: Dictionary = {}
 
-func set_special_gem_labels(labels: Dictionary) -> void:
-	special_gem_labels = labels
+func set_special_gem_icons(icons: Dictionary) -> void:
+	special_gem_icons = icons
 	queue_redraw()
 
 func color_for_id(color_id: String) -> Color:

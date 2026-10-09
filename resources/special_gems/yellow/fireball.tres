@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="SkillDefinition" format=3 uid="uid://mpsyx3w5578b"]
+
+[ext_resource type="Script" uid="uid://d18r4uccym0lx" path="res://scripts/core/definitions/SkillDefinition.gd" id="1_syp2w"]
+[ext_resource type="Texture2D" uid="uid://cldvpgd2bk7st" path="res://resources/special_gems/yellow/fireball.png" id="1_x3rki"]
+
+[resource]
+script = ExtResource("1_syp2w")
+id = "fireball"
+name = "Fireball"
+description = "Deals 20 damage"
+icon = ExtResource("1_x3rki")
+metadata/_custom_type_script = "uid://d18r4uccym0lx"

@@ -6,6 +6,7 @@ extends PanelContainer
 
 const COLOR_ORDER: Array[String] = ["red", "yellow", "blue", "green"]
 const DIM_ALPHA := 0.4
+const ICON_SIZE := 18
 
 var _rows: Dictionary = {}
 var _gem_entries: Array = []
@@ -56,13 +57,21 @@ func _make_color_chip(color_id: String) -> Control:
 	return chip
 
 func _make_gem_entry(gem: SpecialGemDefinition) -> Control:
-	var label := _make_label(
-		"[%s] %s %s" % [gem.get_short_label(), gem.display_name, gem.get_requirement_text()],
-		Color.WHITE
-	)
-	label.tooltip_text = gem.display_name
-	label.mouse_filter = Control.MOUSE_FILTER_PASS
-	return label
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 3)
+	row.tooltip_text = gem.display_name
+	row.mouse_filter = Control.MOUSE_FILTER_PASS
+	if gem.icon != null:
+		var icon := TextureRect.new()
+		icon.texture = gem.icon
+		icon.custom_minimum_size = Vector2(ICON_SIZE, ICON_SIZE)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_child(icon)
+	row.add_child(_make_label("%s %s" % [gem.display_name, gem.get_requirement_text()], Color.WHITE))
+	return row
 
 func _make_label(text: String, color: Color) -> Label:
 	var label := Label.new()

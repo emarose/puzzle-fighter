@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="SpecialGemDefinition" format=3]
+
+[ext_resource type="Script" uid="uid://be616lebljfmq" path="res://scripts/core/definitions/SpecialGemDefinition.gd" id="1_gem"]
+[ext_resource type="Texture2D" uid="uid://b18at2ga3666p" path="res://resources/special_gems/blue/barrier.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_gem")
+id = "barrier"
+display_name = "Barrier"
+icon = ExtResource("2_icon")
+color_id = "blue"
+minimum_match_size = 4
+effect_type = "barrier"
+effect_parameters = {
+"guard": 4
+}

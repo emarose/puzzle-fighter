@@ -1,12 +1,24 @@
-[gd_resource type="Resource" script_class="SpecialGemLoadout" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="SpecialGemLoadout" format=3 uid="uid://ctgwkanyya1x0"]
 
-[ext_resource type="Script" path="res://scripts/core/definitions/SpecialGemLoadout.gd" id="1_loadout"]
-[ext_resource type="Resource" path="res://resources/special_gems/critical_chance.tres" id="2_critical"]
-[ext_resource type="Resource" path="res://resources/special_gems/fireball.tres" id="3_fireball"]
-[ext_resource type="Script" path="res://scripts/core/definitions/SpecialGemDefinition.gd" id="4_gem_definition"]
+[ext_resource type="Script" uid="uid://b1hh664cler5m" path="res://scripts/core/definitions/SpecialGemLoadout.gd" id="1_loadout"]
+[ext_resource type="Resource" uid="uid://cxslat877rkl4" path="res://resources/special_gems/red/critical_chance.tres" id="3_56nwn"]
+[ext_resource type="Script" uid="uid://be616lebljfmq" path="res://scripts/core/definitions/SpecialGemDefinition.gd" id="4_gem_definition"]
+[ext_resource type="Resource" path="res://resources/special_gems/blue/barrier.tres" id="5_barrier"]
+[ext_resource type="Texture2D" uid="uid://cldvpgd2bk7st" path="res://resources/special_gems/yellow/fireball.png" id="6_fireball_icon"]
+
+[sub_resource type="Resource" id="Resource_obtoj"]
+script = ExtResource("4_gem_definition")
+id = "fireball"
+display_name = "Fireball"
+icon = ExtResource("6_fireball_icon")
+color_id = "yellow"
+minimum_match_size = 4
+effect_type = "fireball"
+effect_parameters = {
+"damage": 20
+}
 
 [resource]
 script = ExtResource("1_loadout")
-max_equipped = 2
 spawn_chance = 0.2
-selected_gems = Array[ExtResource("4_gem_definition")]([ExtResource("2_critical"), ExtResource("3_fireball")])
+selected_gems = Array[ExtResource("4_gem_definition")]([ExtResource("3_56nwn"), SubResource("Resource_obtoj"), ExtResource("5_barrier")])

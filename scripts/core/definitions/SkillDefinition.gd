@@ -8,10 +8,11 @@ extends Resource
 @export var target: String = "enemy"
 @export var parameters: Dictionary = {}
 @export var description: String = ""
+@export var icon: Texture2D
 
 func _init(p_id: String = "", p_name: String = "", p_cost: int = 0, p_effect_type: String = "damage", p_target: String = "enemy") -> void:
-    id = p_id
-    name = p_name
-    cost = p_cost
-    effect_type = p_effect_type
-    target = p_target
+	id = p_id
+	name = p_name
+	cost = p_cost
+	effect_type = p_effect_type
+	target = p_target
