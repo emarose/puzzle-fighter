@@ -30,7 +30,7 @@ func _draw() -> void:
 		if not str(block.get("special_gem_id", "")).is_empty():
 			var gem_id: String = str(block.get("special_gem_id", ""))
 			var icon: Texture2D = special_gem_icons.get(gem_id) as Texture2D
-			SpecialGemGlyph.draw_badge(self, rect, icon, SpecialGemGlyph.Status.IDLE)
+			SpecialGemGlyph.draw_badge(self, rect, icon, SpecialGemGlyph.Status.IDLE, color)
 
 var special_gem_icons: Dictionary = {}
 

@@ -22,14 +22,14 @@ static func color_for_id(color_id: String) -> Color:
 		_:
 			return Color(0.75, 0.75, 0.75, 1.0)
 
-static func status_color(status: int) -> Color:
+static func status_color(status: int, idle_color: Color = IDLE_COLOR) -> Color:
 	match status:
 		Status.READY:
 			return READY_COLOR
 		Status.BLOCKED:
 			return BLOCKED_COLOR
 		_:
-			return IDLE_COLOR
+			return idle_color
 
 # Maps gem id -> icon so views only receive plain presentation data.
 static func icons_by_id(gems: Array[SpecialGemDefinition]) -> Dictionary:
@@ -38,9 +38,10 @@ static func icons_by_id(gems: Array[SpecialGemDefinition]) -> Dictionary:
 		icons[gem.id] = gem.icon
 	return icons
 
-# Draws the gem icon fitted (aspect preserved) inside `rect` plus a status border.
-static func draw_badge(canvas: CanvasItem, rect: Rect2, icon: Texture2D, status: int) -> void:
-	var accent: Color = status_color(status)
+# Draws the gem icon fitted (aspect preserved) inside `rect` plus a border that
+# uses `block_color` when idle and the status color when ready/blocked.
+static func draw_badge(canvas: CanvasItem, rect: Rect2, icon: Texture2D, status: int, block_color: Color = IDLE_COLOR) -> void:
+	var accent: Color = status_color(status, block_color)
 	canvas.draw_rect(rect, Color(0.08, 0.08, 0.12, 0.85))
 	if icon != null:
 		var icon_rect: Rect2 = fit_rect(icon.get_size(), rect.grow(-rect.size.x * 0.08))

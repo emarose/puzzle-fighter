@@ -210,7 +210,7 @@ func _draw() -> void:
             )
             draw_rect(inner_rect, fill_color)
             if not cell.special_gem_id.is_empty():
-                _draw_special_gem_marker(inner_rect, cell.special_gem_id, Vector2i(x, y))
+                _draw_special_gem_marker(inner_rect, cell.special_gem_id, fill_color, Vector2i(x, y))
 
     for movement in gravity_movements:
         var source: Vector2i = movement.get("from", Vector2i.ZERO)
@@ -222,10 +222,11 @@ func _draw() -> void:
             position * cell_size + Vector2(cell_inset, cell_inset),
             cell_size - Vector2(cell_inset * 2.0, cell_inset * 2.0)
         )
-        draw_rect(inner_rect, color_for_id(str(movement.get("color_id", ""))))
+        var moving_color: Color = color_for_id(str(movement.get("color_id", "")))
+        draw_rect(inner_rect, moving_color)
         var gem_id: String = str(movement.get("special_gem_id", ""))
         if not gem_id.is_empty():
-            _draw_special_gem_marker(inner_rect, gem_id)
+            _draw_special_gem_marker(inner_rect, gem_id, moving_color)
 
     for cell_position in explosion_cells:
         if typeof(cell_position) != TYPE_VECTOR2I:
@@ -248,12 +249,12 @@ func _draw() -> void:
                 2.0
             )
 
-func _draw_special_gem_marker(rect: Rect2, gem_id: String, cell_position: Vector2i = Vector2i(-1, -1)) -> void:
+func _draw_special_gem_marker(rect: Rect2, gem_id: String, block_color: Color, cell_position: Vector2i = Vector2i(-1, -1)) -> void:
     var icon: Texture2D = special_gem_icons.get(gem_id) as Texture2D
     var status: int = SpecialGemGlyph.Status.IDLE
     if gem_status_provider.is_valid():
         status = int(gem_status_provider.call(cell_position))
-    SpecialGemGlyph.draw_badge(self, rect, icon, status)
+    SpecialGemGlyph.draw_badge(self, rect, icon, status, block_color)
 
 func color_for_id(color_id: String) -> Color:
     match color_id:
