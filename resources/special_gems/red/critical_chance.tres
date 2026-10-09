@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://be616lebljfmq" path="res://scripts/core/definitions/SpecialGemDefinition.gd" id="1_gem"]
 [ext_resource type="Texture2D" uid="uid://uiu3ycvpf74n" path="res://resources/special_gems/red/critical_chance.png" id="2_icon"]
+[ext_resource type="Texture2D" path="res://resources/special_gems/red/critical_chance_animation.png" id="3_anim"]
 
 [resource]
 script = ExtResource("1_gem")
@@ -11,6 +12,7 @@ icon = ExtResource("2_icon")
 color_id = "red"
 minimum_match_size = 5
 effect_type = "critical_chance"
+effect_animation = ExtResource("3_anim")
 effect_parameters = {
 "critical_multiplier": 2.0
 }

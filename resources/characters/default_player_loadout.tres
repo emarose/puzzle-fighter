@@ -5,6 +5,7 @@
 [ext_resource type="Script" uid="uid://be616lebljfmq" path="res://scripts/core/definitions/SpecialGemDefinition.gd" id="4_gem_definition"]
 [ext_resource type="Resource" path="res://resources/special_gems/blue/barrier.tres" id="5_barrier"]
 [ext_resource type="Texture2D" uid="uid://cldvpgd2bk7st" path="res://resources/special_gems/yellow/fireball.png" id="6_fireball_icon"]
+[ext_resource type="Texture2D" path="res://resources/special_gems/yellow/fireball_animation.png" id="7_fireball_anim"]
 
 [sub_resource type="Resource" id="Resource_obtoj"]
 script = ExtResource("4_gem_definition")
@@ -14,6 +15,9 @@ icon = ExtResource("6_fireball_icon")
 color_id = "yellow"
 minimum_match_size = 4
 effect_type = "fireball"
+effect_animation = ExtResource("7_fireball_anim")
+effect_animation_scale = 0.75
+effect_animation_offset = Vector2(0, -34)
 effect_parameters = {
 "damage": 20
 }

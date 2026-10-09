@@ -16,6 +16,9 @@ var actor_id: String = ""
 var attack_animations: Array[StringName] = []
 var is_dead: bool = false
 var rng := RandomNumberGenerator.new()
+var loadouts: Array[SpecialGemLoadout] = []
+var effect_sprite: AnimatedSprite2D
+var immediate_hit: bool = false
 
 func _ready() -> void:
 	rng.randomize()
@@ -23,6 +26,14 @@ func _ready() -> void:
 	var definition: CombatantDefinition = null
 	if battle != null:
 		definition = battle.player_character if side == Side.PLAYER else battle.enemy_character
+		for character: CombatantDefinition in [battle.player_character, battle.enemy_character]:
+			if character != null and character.special_gem_loadout != null:
+				loadouts.append(character.special_gem_loadout)
+	effect_sprite = AnimatedSprite2D.new()
+	effect_sprite.z_index = 1
+	effect_sprite.visible = false
+	effect_sprite.animation_finished.connect(effect_sprite.hide)
+	add_child(effect_sprite)
 	if definition != null:
 		configure(definition)
 	animation_finished.connect(_on_animation_finished)
@@ -76,10 +87,16 @@ func _on_event_emitted(event_name: String, payload: Dictionary) -> void:
 		"attack_created":
 			if str(payload.get("source", "")) == actor_id and str(payload.get("role", "")) == "DAMAGE":
 				play_attack()
+			if str(payload.get("target", "")) == actor_id and _has_animated_gem(payload.get("special_effects", [])):
+				immediate_hit = true
+				call_deferred("_clear_immediate_hit")
+		"special_gem_activated":
+			if str(payload.get("actor_id", "")) != actor_id:
+				_play_gem_effect(str(payload.get("gem_id", "")))
 		"damage_received":
 			if str(payload.get("actor_id", "")) != actor_id:
 				return
-			_react_to_damage(int(payload.get("current_hp", 1)) <= 0)
+			_react_to_damage(int(payload.get("current_hp", 1)) <= 0, immediate_hit)
 		"battle_won":
 			if side == Side.ENEMY:
 				_react_to_damage(true)
@@ -87,8 +104,8 @@ func _on_event_emitted(event_name: String, payload: Dictionary) -> void:
 			if side == Side.PLAYER:
 				_react_to_damage(true)
 
-func _react_to_damage(fatal: bool) -> void:
-	if hit_reaction_delay > 0.0:
+func _react_to_damage(fatal: bool, immediate: bool = false) -> void:
+	if hit_reaction_delay > 0.0 and not immediate:
 		await get_tree().create_timer(hit_reaction_delay).timeout
 	if not is_inside_tree():
 		return
@@ -96,6 +113,37 @@ func _react_to_damage(fatal: bool) -> void:
 		play_death()
 	else:
 		play_hurt()
+
+func _clear_immediate_hit() -> void:
+	immediate_hit = false
+
+func _find_gem(gem_id: String) -> SpecialGemDefinition:
+	for loadout in loadouts:
+		var gem: SpecialGemDefinition = loadout.get_gem(gem_id)
+		if gem != null:
+			return gem
+	return null
+
+func _has_animated_gem(gem_ids: Array) -> bool:
+	for gem_id in gem_ids:
+		var gem: SpecialGemDefinition = _find_gem(str(gem_id))
+		if gem != null and gem.effect_animation != null:
+			return true
+	return false
+
+func _play_gem_effect(gem_id: String) -> void:
+	var gem: SpecialGemDefinition = _find_gem(gem_id)
+	if gem == null or gem.effect_animation == null or is_dead:
+		return
+	var frames := SpriteFrames.new()
+	frames.remove_animation(&"default")
+	if not _add_animation(frames, &"effect", gem.effect_animation, gem.effect_animation_fps, false):
+		return
+	effect_sprite.sprite_frames = frames
+	effect_sprite.scale = Vector2.ONE * gem.effect_animation_scale
+	effect_sprite.position = gem.effect_animation_offset
+	effect_sprite.visible = true
+	effect_sprite.play(&"effect")
 
 func _find_battle_manager() -> Node:
 	var node: Node = get_parent()

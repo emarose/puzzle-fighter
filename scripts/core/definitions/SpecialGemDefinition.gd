@@ -11,6 +11,14 @@ extends Resource
 @export_range(0.0, 100.0, 0.1) var spawn_weight: float = 1.0
 @export var effect_type: String = ""
 @export var effect_parameters: Dictionary = {}
+@export_group("Effect Animation")
+## Horizontal strip; each frame is a square the size of the sheet height.
+@export var effect_animation: Texture2D
+@export_range(1.0, 60.0, 1.0) var effect_animation_fps: float = 12.0
+@export var effect_animation_scale: float = 1.0
+## Offset from the center of the targeted actor sprite.
+@export var effect_animation_offset: Vector2 = Vector2.ZERO
+@export_group("")
 
 func _init(
 	p_id: String = "",
