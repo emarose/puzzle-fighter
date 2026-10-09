@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="EnemyDefinition" format=3 uid="uid://b8l8bte54ukun"]
+
+[ext_resource type="Script" uid="uid://cb1k1ho8knnta" path="res://scripts/core/definitions/EnemyDefinition.gd" id="1_enemy"]
+[ext_resource type="Resource" path="res://resources/enemies/default_turn_pattern.tres" id="2_pattern"]
+[ext_resource type="Texture2D" path="res://resources/enemies/orc/Orc_Idle.png" id="Orc_Idle"]
+[ext_resource type="Texture2D" path="res://resources/enemies/orc/Orc_Hurt.png" id="Orc_Hurt"]
+[ext_resource type="Texture2D" path="res://resources/enemies/orc/Orc_Death.png" id="Orc_Death"]
+[ext_resource type="Texture2D" path="res://resources/enemies/orc/Orc_Attack01.png" id="Orc_Attack01"]
+[ext_resource type="Texture2D" path="res://resources/enemies/orc/Orc_Attack02.png" id="Orc_Attack02"]
+
+[resource]
+script = ExtResource("1_enemy")
+turn_pattern = ExtResource("2_pattern")
+id = "enemy"
+name = "Orc"
+max_hp = 100
+idle_sheet = ExtResource("Orc_Idle")
+hurt_sheet = ExtResource("Orc_Hurt")
+death_sheet = ExtResource("Orc_Death")
+attack_sheets = Array[Texture2D]([ExtResource("Orc_Attack01"), ExtResource("Orc_Attack02")])

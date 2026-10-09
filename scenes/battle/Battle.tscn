@@ -8,11 +8,12 @@
 [ext_resource type="PackedScene" uid="uid://b3s30j0q5v3c2" path="res://scenes/ui/BattleHud.tscn" id="6_battlehud"]
 [ext_resource type="PackedScene" path="res://scenes/board/BoardView.tscn" id="7_boardview"]
 [ext_resource type="PackedScene" path="res://scenes/pieces/PieceView.tscn" id="8_pieceview"]
-[ext_resource type="Resource" uid="uid://cqkj3dru4yknb" path="res://resources/characters/default_player.tres" id="9_player"]
-[ext_resource type="Resource" uid="uid://b8l8bte54ukun" path="res://resources/enemies/default_enemy.tres" id="10_enemy"]
+[ext_resource type="Resource" uid="uid://cqkj3dru4yknb" path="res://resources/characters/soldier/soldier.tres" id="9_player"]
+[ext_resource type="Resource" uid="uid://b8l8bte54ukun" path="res://resources/enemies/orc/orc.tres" id="10_enemy"]
 [ext_resource type="Resource" uid="uid://c3ey6o7prkbn7" path="res://resources/combat_tuning.tres" id="11_tuning"]
 [ext_resource type="Resource" uid="uid://3k4pk83oolea" path="res://resources/skills/default_skill_catalog.tres" id="12_skills"]
 [ext_resource type="PackedScene" path="res://scenes/ui/ActorStatusPanel.tscn" id="13_status_panel"]
+[ext_resource type="PackedScene" uid="uid://d1typle8cy3tt" path="res://scenes/ui/ActorSprite.tscn" id="14_sprite"]
 
 [node name="Battle" type="Node2D" unique_id=1629196341]
 script = ExtResource("1_4j9m3")
@@ -44,6 +45,10 @@ position = Vector2(12, 260)
 offset_top = -72.0
 offset_bottom = 0.0
 
+[node name="ActorSprite" parent="PlayerBoardContainer" unique_id=1448818569 instance=ExtResource("14_sprite")]
+position = Vector2(120, -105)
+scale = Vector2(4, 4)
+
 [node name="EnemyBoardContainer" type="Node2D" parent="." unique_id=716373736]
 position = Vector2(288, 260)
 
@@ -57,5 +62,11 @@ script = ExtResource("3_9l2t1")
 [node name="ActorStatusPanel" parent="EnemyBoardContainer" unique_id=1342704561 instance=ExtResource("13_status_panel")]
 offset_top = -72.0
 offset_bottom = 0.0
+
+[node name="ActorSprite" parent="EnemyBoardContainer" unique_id=752114079 instance=ExtResource("14_sprite")]
+position = Vector2(120, -105)
+scale = Vector2(4, 4)
+flip_h = true
+side = 1
 
 [node name="BattleHud" parent="." unique_id=1013733575 instance=ExtResource("6_battlehud")]

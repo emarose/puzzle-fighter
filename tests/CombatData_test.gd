@@ -1,8 +1,8 @@
 extends SceneTree
 
 func _init() -> void:
-	var player: CharacterDefinition = load("res://resources/characters/default_player.tres")
-	var enemy: EnemyDefinition = load("res://resources/enemies/default_enemy.tres")
+	var player: CharacterDefinition = load("res://resources/characters/soldier/soldier.tres")
+	var enemy: EnemyDefinition = load("res://resources/enemies/orc/orc.tres")
 	var tuning: CombatTuning = load("res://resources/combat_tuning.tres")
 	var catalog: SkillCatalog = load("res://resources/skills/default_skill_catalog.tres")
 

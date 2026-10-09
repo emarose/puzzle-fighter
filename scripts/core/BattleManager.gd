@@ -38,9 +38,9 @@ func _ready() -> void:
 
 func _initialize_characters() -> bool:
 	if player_character == null:
-		player_character = load("res://resources/characters/default_player.tres")
+		player_character = load("res://resources/characters/soldier/soldier.tres")
 	if enemy_character == null:
-		enemy_character = load("res://resources/enemies/default_enemy.tres")
+		enemy_character = load("res://resources/enemies/orc/orc.tres")
 	if player_character == null or enemy_character == null:
 		push_error("BattleManager could not load the player or enemy definition resource.")
 		return false

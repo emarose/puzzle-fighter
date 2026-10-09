@@ -1,0 +1,7 @@
+[gd_scene format=3 uid="uid://d1typle8cy3tt"]
+
+[ext_resource type="Script" uid="uid://cr3iw22xno38n" path="res://scripts/ui/ActorSprite.gd" id="1_sprite"]
+
+[node name="ActorSprite" type="AnimatedSprite2D" unique_id=874281027]
+texture_filter = 1
+script = ExtResource("1_sprite")

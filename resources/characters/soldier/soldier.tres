@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="CharacterDefinition" format=3 uid="uid://cqkj3dru4yknb"]
+
+[ext_resource type="Script" uid="uid://dv8ll38fk8uv7" path="res://scripts/core/definitions/CharacterDefinition.gd" id="1_character"]
+[ext_resource type="Resource" path="res://resources/characters/default_player_loadout.tres" id="2_loadout"]
+[ext_resource type="Texture2D" path="res://resources/characters/soldier/Soldier_Idle.png" id="Soldier_Idle"]
+[ext_resource type="Texture2D" path="res://resources/characters/soldier/Soldier_Hurt.png" id="Soldier_Hurt"]
+[ext_resource type="Texture2D" path="res://resources/characters/soldier/Soldier_Death.png" id="Soldier_Death"]
+[ext_resource type="Texture2D" path="res://resources/characters/soldier/Soldier_Attack01.png" id="Soldier_Attack01"]
+[ext_resource type="Texture2D" path="res://resources/characters/soldier/Soldier_Attack02.png" id="Soldier_Attack02"]
+[ext_resource type="Texture2D" path="res://resources/characters/soldier/Soldier_Attack03.png" id="Soldier_Attack03"]
+
+[resource]
+script = ExtResource("1_character")
+id = "player"
+name = "Soldier"
+max_hp = 100
+skill_ids = Array[String](["burst", "heal", "pulse"])
+special_gem_loadout = ExtResource("2_loadout")
+idle_sheet = ExtResource("Soldier_Idle")
+hurt_sheet = ExtResource("Soldier_Hurt")
+death_sheet = ExtResource("Soldier_Death")
+attack_sheets = Array[Texture2D]([ExtResource("Soldier_Attack01"), ExtResource("Soldier_Attack02"), ExtResource("Soldier_Attack03")])
