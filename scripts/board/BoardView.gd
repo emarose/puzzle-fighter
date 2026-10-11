@@ -105,10 +105,8 @@ func show_detonation_label(group: MatchManager.PreparedGroup, text: String, subt
         bounds = cell_rect if not has_cells else bounds.merge(cell_rect)
         has_cells = true
     var center: Vector2 = bounds.get_center()
-    var margin: float = cell_size.x * 1.2
-    center.x = clampf(center.x, margin, board_columns * cell_size.x - margin)
-    center.y = maxf(center.y, cell_size.y)
-    DetonationLabel.spawn(self, center, text, color_for_id(group.color_id), subtitle, EXPLOSION_SECONDS)
+    var board_rect := Rect2(Vector2.ZERO, Vector2(board_columns, board_rows) * cell_size)
+    DetonationLabel.spawn(self, center, text, color_for_id(group.color_id), subtitle, EXPLOSION_SECONDS, board_rect)
 
 func _set_explosion_progress(progress: float) -> void:
     explosion_progress = progress

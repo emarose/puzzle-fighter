@@ -20,7 +20,8 @@ static func spawn(
 	text: String,
 	color: Color,
 	subtitle: String = "",
-	delay: float = 0.0
+	delay: float = 0.0,
+	bounds: Rect2 = Rect2()
 ) -> DetonationLabel:
 	if parent == null:
 		return null
@@ -38,8 +39,22 @@ static func spawn(
 	label.reset_size()
 	label.pivot_offset = label.size * 0.5
 	label.position = center - label.size * 0.5
+	if bounds.has_area():
+		label.position = _clamp_inside(label.position, label.size, bounds)
 	label._play(delay)
 	return label
+
+# Keeps the label (including its peak pop scale and upward drift) inside `bounds`.
+static func _clamp_inside(pos: Vector2, label_size: Vector2, bounds: Rect2) -> Vector2:
+	var peak_scale := 1.25
+	var half_extra: Vector2 = label_size * (peak_scale - 1.0) * 0.5
+	var min_pos: Vector2 = bounds.position + half_extra
+	var max_pos: Vector2 = bounds.end - label_size - half_extra
+	# If the label is wider than the bounds, center it instead of overflowing one side.
+	var result := pos
+	result.x = clampf(pos.x, min_pos.x, max_pos.x) if max_pos.x >= min_pos.x else bounds.get_center().x - label_size.x * 0.5
+	result.y = clampf(pos.y, min_pos.y + 36.0, max_pos.y) if max_pos.y >= min_pos.y + 36.0 else pos.y
+	return result
 
 func _play(delay: float) -> void:
 	scale = Vector2(0.4, 0.4)

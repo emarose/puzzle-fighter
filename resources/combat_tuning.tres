@@ -8,6 +8,7 @@
 
 [resource]
 script = ExtResource("1_tuning")
-heal_per_block = 3.0
-energy_per_block = 3.0
+max_energy = 10
+heal_per_block = 5.0
+energy_per_block = 5.0
 color_definitions = [ExtResource("2_red"), ExtResource("3_blue"), ExtResource("4_green"), ExtResource("5_yellow")]
