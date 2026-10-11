@@ -162,7 +162,8 @@ func create_attack_event(source: String, target: String, color_id: String, base_
 	var role: ColorDefinition.CombatRole = ColorDefinition.CombatRole.DAMAGE
 	if color_definition != null:
 		role = color_definition.combat_role
-	var total_amount: int = max(0, int(float(base_damage * effect_multiplier + cascade_bonus) * combined_modifier))
+	var role_per_block: float = combat_tuning.get_role_per_block(role)
+	var total_amount: int = max(0, int(float(base_damage * effect_multiplier * role_per_block + cascade_bonus) * combined_modifier))
 	match role:
 		ColorDefinition.CombatRole.DAMAGE:
 			total_amount = max(combat_tuning.damage_floor, total_amount)
