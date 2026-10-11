@@ -92,6 +92,24 @@ func play_group_explosion(group: MatchManager.PreparedGroup) -> void:
     )
     explosion_tween.tween_callback(Callable(self, "_clear_explosion"))
 
+const EXPLOSION_SECONDS := 0.24
+
+# Pops a fading label over a detonated group, timed to appear as its blocks vanish.
+func show_detonation_label(group: MatchManager.PreparedGroup, text: String, subtitle: String = "") -> void:
+    if group == null or group.cells.is_empty():
+        return
+    var bounds := Rect2()
+    var has_cells := false
+    for cell_position in group.cells:
+        var cell_rect := Rect2(Vector2(cell_position) * cell_size, cell_size)
+        bounds = cell_rect if not has_cells else bounds.merge(cell_rect)
+        has_cells = true
+    var center: Vector2 = bounds.get_center()
+    var margin: float = cell_size.x * 1.2
+    center.x = clampf(center.x, margin, board_columns * cell_size.x - margin)
+    center.y = maxf(center.y, cell_size.y)
+    DetonationLabel.spawn(self, center, text, color_for_id(group.color_id), subtitle, EXPLOSION_SECONDS)
+
 func _set_explosion_progress(progress: float) -> void:
     explosion_progress = progress
     queue_redraw()

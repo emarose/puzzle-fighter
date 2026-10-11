@@ -26,6 +26,9 @@ func _init(p_id: String = "", p_name: String = "", p_attack_behavior: String = "
 	combat_role = p_combat_role
 	effect_multiplier = p_effect_multiplier
 
+func get_role_label() -> String:
+	return CombatRole.keys()[combat_role].capitalize()
+
 static func default_palette() -> Dictionary:
 	return {
 		"red": ColorDefinition.new("red", "Red", "damage", Color(1.0, 0.3, 0.35), 1.35, CombatRole.DAMAGE, 1.0),

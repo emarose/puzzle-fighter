@@ -450,6 +450,11 @@ func try_resolve_prepared_group(cell: Vector2i) -> bool:
 	_apply_player_cascade_effects(prepared_result, special_effects)
 	if board_view != null:
 		board_view.play_group_explosion(group)
+		board_view.show_detonation_label(
+			group,
+			_detonation_label_text(color_id, group_size, special_effects),
+			"Combo x%d" % prepared_result.cascade_count if prepared_result.cascade_count > 1 else ""
+		)
 
 	var result: Dictionary = board_manager.resolve_prepared_group(
 		group,
@@ -477,6 +482,22 @@ func try_resolve_prepared_group(cell: Vector2i) -> bool:
 	if battle_manager != null and battle_manager.current_state != BattleManager.BattleState.ENEMY_ACTION:
 		battle_manager.set_state(BattleManager.BattleState.ENEMY_ACTION)
 	return true
+
+# Special gem name(s) that activated take priority; otherwise the color's combat role.
+func _detonation_label_text(color_id: String, group_size: int, special_effects: Array) -> String:
+	var names: PackedStringArray = []
+	var equipped: Array[SpecialGemDefinition] = get_player_special_gems()
+	for effect in special_effects:
+		var gem_id: String = str(effect.get("gem_id", ""))
+		for definition in equipped:
+			if definition.id == gem_id and not definition.display_name.is_empty() \
+					and not names.has(definition.display_name):
+				names.append(definition.display_name)
+	if not names.is_empty():
+		return "%s x%d" % [" + ".join(names), group_size]
+	var color_definition: ColorDefinition = combat_manager.get_color_definition(color_id)
+	var role_text: String = color_definition.get_role_label() if color_definition != null else color_id.capitalize()
+	return "%s x%d" % [role_text, group_size]
 
 func try_resolve_prepared_group_at_screen_position(screen_position: Vector2) -> bool:
 	var board_view: BoardView = get_node_or_null("PlayerBoardContainer/BoardView") as BoardView
