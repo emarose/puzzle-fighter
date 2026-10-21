@@ -11,8 +11,8 @@ class_name BoardView
 
 var board_manager: BoardManager
 @onready var match_fill: BoardMatchFill = $MatchFill
-var background_color: Color = Color(0.10, 0.14, 0.18, 1.0)
-var grid_color: Color = Color(0.28, 0.38, 0.46, 1.0)
+var background_color: Color = Color(0.082, 0.129, 0.169, 1.0)
+var grid_color: Color = Color(0.15, 0.23, 0.30, 1.0)
 var explosion_cells: Array = []
 var explosion_progress: float = 0.0
 var explosion_color: Color = Color.WHITE
@@ -224,7 +224,7 @@ func _draw() -> void:
                 Vector2(x * cell_size.x + cell_inset, y * cell_size.y + cell_inset),
                 cell_size - Vector2(cell_inset * 2.0, cell_inset * 2.0)
             )
-            draw_rect(inner_rect, fill_color)
+            _draw_block(inner_rect, fill_color)
             if not cell.special_gem_id.is_empty():
                 _draw_special_gem_marker(inner_rect, cell.special_gem_id, fill_color, Vector2i(x, y))
 
@@ -239,7 +239,7 @@ func _draw() -> void:
             cell_size - Vector2(cell_inset * 2.0, cell_inset * 2.0)
         )
         var moving_color: Color = color_for_id(str(movement.get("color_id", "")))
-        draw_rect(inner_rect, moving_color)
+        _draw_block(inner_rect, moving_color)
         var gem_id: String = str(movement.get("special_gem_id", ""))
         if not gem_id.is_empty():
             _draw_special_gem_marker(inner_rect, gem_id, moving_color)
@@ -264,6 +264,16 @@ func _draw() -> void:
                 particle_color,
                 2.0
             )
+
+func _draw_block(rect: Rect2, fill_color: Color) -> void:
+    draw_rect(rect, fill_color.darkened(0.3))
+    draw_rect(rect.grow(-1.0), fill_color)
+    draw_line(
+        rect.position + Vector2(1.0, 1.0),
+        Vector2(rect.end.x - 1.0, rect.position.y + 1.0),
+        fill_color.lightened(0.28),
+        1.0
+    )
 
 func _draw_special_gem_marker(rect: Rect2, gem_id: String, block_color: Color, cell_position: Vector2i = Vector2i(-1, -1)) -> void:
     var icon: Texture2D = special_gem_icons.get(gem_id) as Texture2D

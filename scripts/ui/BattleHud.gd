@@ -2,6 +2,7 @@ extends CanvasLayer
 
 @onready var turn_label: Label = $MarginContainer/VBoxContainer/Turn
 @onready var feedback_label: Label = $MarginContainer/VBoxContainer/Feedback
+@onready var effect_legend: HFlowContainer = $MarginContainer/VBoxContainer/EffectLegend/Items
 @onready var special_gem_panel: SpecialGemPanel = $MarginContainer/VBoxContainer/SpecialGemPanel
 @onready var special_gem_toast: SpecialGemToast = $MarginContainer/VBoxContainer/SpecialGemToast
 @onready var skill_buttons_container: HBoxContainer = $MarginContainer/VBoxContainer/SkillButtons
@@ -19,6 +20,11 @@ var input_controller: Node
 var player_status_panel: ActorStatusPanel
 var enemy_status_panel: ActorStatusPanel
 var event_bus: EventBus
+
+const MOVEMENT_ACCENT := Color(0.16, 0.78, 0.88)
+const ACTION_ACCENT := Color(0.91, 0.29, 0.48)
+const ENERGY_ACCENT := Color(0.95, 0.68, 0.18)
+const PAUSE_ACCENT := Color(0.42, 0.58, 0.72)
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -43,10 +49,12 @@ func _ready() -> void:
 		_connect_mobile_controls()
 		if input_controller.has_signal("pause_requested"):
 			input_controller.pause_requested.connect(_on_pause_requested)
+	_style_mobile_controls()
 	if battle_overlay != null:
 		battle_overlay.resume_requested.connect(_on_resume_requested)
 		battle_overlay.restart_requested.connect(_on_restart_requested)
 
+	_build_effect_legend()
 	call_deferred("_build_skill_buttons")
 	call_deferred("_configure_special_gem_panel")
 	_update_hud()
@@ -67,6 +75,29 @@ func _on_skill_button_pressed(skill_id: String) -> void:
 	if not input_controller.call("try_use_skill", skill_id):
 		return
 	_update_hud()
+
+func _build_effect_legend() -> void:
+	var palette: Dictionary = ColorDefinition.default_palette()
+	for color_id in ["red", "blue", "green", "yellow"]:
+		var definition: ColorDefinition = palette[color_id]
+		var item := HBoxContainer.new()
+		item.add_theme_constant_override("separation", 5)
+		item.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+		var swatch := ColorRect.new()
+		swatch.custom_minimum_size = Vector2(11, 11)
+		swatch.color = definition.display_color
+		swatch.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		swatch.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		item.add_child(swatch)
+
+		var label := Label.new()
+		label.text = definition.get_role_label().to_upper()
+		label.add_theme_font_size_override("font_size", 11)
+		label.add_theme_color_override("font_color", Color(0.82, 0.89, 0.96))
+		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		item.add_child(label)
+		effect_legend.add_child(item)
 
 func _connect_mobile_controls() -> void:
 	var controls: Dictionary = {
@@ -98,10 +129,76 @@ func _build_skill_buttons() -> void:
 		var shortcut: String = " [%d]" % (index + 1) if index < 3 else ""
 		button.text = "%s (%d)%s" % [definition.name, definition.cost, shortcut]
 		button.tooltip_text = definition.description
+		_style_arcade_button(button, _skill_accent(index))
 		button.pressed.connect(_on_skill_button_pressed.bind(definition.id))
 		skill_buttons_container.add_child(button)
 		skill_buttons[definition.id] = button
 	_update_skill_buttons()
+
+func _skill_accent(index: int) -> Color:
+	match index % 3:
+		0:
+			return ACTION_ACCENT
+		1:
+			return ENERGY_ACCENT
+		_:
+			return MOVEMENT_ACCENT
+
+func _style_mobile_controls() -> void:
+	var accents: Dictionary = {
+		"MovementControls/MoveLeft": MOVEMENT_ACCENT,
+		"MovementControls/SoftDrop": ENERGY_ACCENT,
+		"MovementControls/MoveRight": MOVEMENT_ACCENT,
+		"ActionControls/Rotate": ACTION_ACCENT,
+		"ActionControls/HardDrop": ENERGY_ACCENT,
+		"ActionControls/Pause": PAUSE_ACCENT,
+	}
+	for button_path: String in accents:
+		var button := mobile_controls.get_node(button_path) as Button
+		_style_arcade_button(button, accents[button_path])
+
+func _style_arcade_button(button: Button, accent: Color) -> void:
+	button.add_theme_stylebox_override("normal", _make_button_style(accent, "normal"))
+	button.add_theme_stylebox_override("hover", _make_button_style(accent, "hover"))
+	button.add_theme_stylebox_override("pressed", _make_button_style(accent, "pressed"))
+	button.add_theme_stylebox_override("disabled", _make_button_style(accent, "disabled"))
+	button.add_theme_color_override("font_color", Color(0.91, 0.95, 1.0))
+	button.add_theme_color_override("font_hover_color", Color.WHITE)
+	button.add_theme_color_override("font_pressed_color", Color.WHITE)
+	button.add_theme_color_override("font_disabled_color", Color(0.48, 0.55, 0.62))
+	button.add_theme_font_size_override("font_size", 14)
+
+func _make_button_style(accent: Color, state: String) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.055, 0.09, 0.13, 0.98)
+	style.border_color = accent
+	style.border_width_left = 2
+	style.border_width_top = 2
+	style.border_width_right = 2
+	style.border_width_bottom = 2
+	style.corner_radius_top_left = 7
+	style.corner_radius_top_right = 7
+	style.corner_radius_bottom_right = 7
+	style.corner_radius_bottom_left = 7
+	style.content_margin_left = 8.0
+	style.content_margin_top = 6.0
+	style.content_margin_right = 8.0
+	style.content_margin_bottom = 6.0
+	style.shadow_color = Color(0.0, 0.0, 0.0, 0.42)
+	style.shadow_size = 2
+	match state:
+		"hover":
+			style.bg_color = Color(0.09, 0.15, 0.20, 1.0)
+			style.border_color = accent.lightened(0.18)
+		"pressed":
+			style.bg_color = accent.darkened(0.68)
+			style.border_color = accent.lightened(0.24)
+			style.shadow_size = 0
+		"disabled":
+			style.bg_color = Color(0.07, 0.085, 0.10, 0.96)
+			style.border_color = Color(0.28, 0.34, 0.39, 0.8)
+			style.shadow_size = 0
+	return style
 
 func _configure_special_gem_panel() -> void:
 	if special_gem_panel == null or battle_controller == null:

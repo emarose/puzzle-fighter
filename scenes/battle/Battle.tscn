@@ -14,9 +14,49 @@
 [ext_resource type="Resource" uid="uid://3k4pk83oolea" path="res://resources/skills/default_skill_catalog.tres" id="12_skills"]
 [ext_resource type="PackedScene" path="res://scenes/ui/ActorStatusPanel.tscn" id="13_status_panel"]
 [ext_resource type="PackedScene" uid="uid://d1typle8cy3tt" path="res://scenes/ui/ActorSprite.tscn" id="14_sprite"]
+[ext_resource type="Script" path="res://scripts/ui/BattleLayout.gd" id="15_layout"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_board_frame"]
+bg_color = Color(0.055, 0.082, 0.12, 1)
+border_color = Color(0.12, 0.64, 0.78, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_enemy_board_frame"]
+bg_color = Color(0.055, 0.082, 0.12, 1)
+border_color = Color(0.78, 0.20, 0.42, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
 
 [node name="Battle" type="Node2D" unique_id=1629196341]
 script = ExtResource("1_4j9m3")
+
+[node name="Backdrop" type="CanvasLayer" parent="."]
+layer = -1
+
+[node name="Background" type="ColorRect" parent="Backdrop"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.055, 0.067, 0.09, 1)
+
+[node name="BattleLayout" type="Node" parent="."]
+script = ExtResource("15_layout")
 
 [node name="BattleManager" type="Node" parent="." unique_id=1540546550]
 script = ExtResource("2_qp3x8")
@@ -37,6 +77,15 @@ script = ExtResource("5_input")
 [node name="PlayerBoardContainer" type="Node2D" parent="." unique_id=820351956]
 position = Vector2(12, 260)
 
+[node name="BoardFrame" type="Panel" parent="PlayerBoardContainer"]
+offset_left = -6.0
+offset_top = -6.0
+offset_right = 246.0
+offset_bottom = 406.0
+mouse_filter = 2
+z_index = -1
+theme_override_styles/panel = SubResource("StyleBoxFlat_board_frame")
+
 [node name="BoardView" parent="PlayerBoardContainer" unique_id=359752603 instance=ExtResource("7_boardview")]
 
 [node name="PieceView" parent="PlayerBoardContainer" unique_id=607664759 instance=ExtResource("8_pieceview")]
@@ -44,6 +93,7 @@ position = Vector2(12, 260)
 [node name="ActorStatusPanel" parent="PlayerBoardContainer" unique_id=548224263 instance=ExtResource("13_status_panel")]
 offset_top = -72.0
 offset_bottom = 0.0
+accent_color = Color(0.12, 0.64, 0.78, 1)
 
 [node name="ActorSprite" parent="PlayerBoardContainer" unique_id=1448818569 instance=ExtResource("14_sprite")]
 position = Vector2(120, -105)
@@ -51,6 +101,15 @@ scale = Vector2(4, 4)
 
 [node name="EnemyBoardContainer" type="Node2D" parent="." unique_id=716373736]
 position = Vector2(288, 260)
+
+[node name="BoardFrame" type="Panel" parent="EnemyBoardContainer"]
+offset_left = -6.0
+offset_top = -6.0
+offset_right = 246.0
+offset_bottom = 406.0
+mouse_filter = 2
+z_index = -1
+theme_override_styles/panel = SubResource("StyleBoxFlat_enemy_board_frame")
 
 [node name="BoardView" parent="EnemyBoardContainer" unique_id=1614741143 instance=ExtResource("7_boardview")]
 
@@ -62,6 +121,7 @@ script = ExtResource("3_9l2t1")
 [node name="ActorStatusPanel" parent="EnemyBoardContainer" unique_id=1342704561 instance=ExtResource("13_status_panel")]
 offset_top = -72.0
 offset_bottom = 0.0
+accent_color = Color(0.78, 0.20, 0.42, 1)
 
 [node name="ActorSprite" parent="EnemyBoardContainer" unique_id=752114079 instance=ExtResource("14_sprite")]
 position = Vector2(120, -105)

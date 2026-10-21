@@ -31,16 +31,17 @@ func _rebuild(gems: Array[SpecialGemDefinition]) -> void:
 	add_child(column)
 
 	for color_id in COLOR_ORDER:
-		var row := HBoxContainer.new()
-		row.add_theme_constant_override("separation", 6)
-		column.add_child(row)
-		row.add_child(_make_color_chip(color_id))
 		var matching: Array[SpecialGemDefinition] = []
 		for gem in gems:
 			if gem.color_id == color_id:
 				matching.append(gem)
 		if matching.is_empty():
-			row.add_child(_make_label("-", Color(1, 1, 1, 0.35)))
+			continue
+
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 6)
+		column.add_child(row)
+		row.add_child(_make_color_chip(color_id))
 		for gem in matching:
 			var entry: Control = _make_gem_entry(gem)
 			row.add_child(entry)
