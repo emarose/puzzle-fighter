@@ -6,7 +6,8 @@ extends CanvasLayer
 @onready var special_gem_panel: SpecialGemPanel = $MarginContainer/VBoxContainer/SpecialGemPanel
 @onready var special_gem_toast: SpecialGemToast = $MarginContainer/VBoxContainer/SpecialGemToast
 @onready var skill_buttons_container: HBoxContainer = $MarginContainer/VBoxContainer/SkillButtons
-@onready var mobile_controls: VBoxContainer = $MarginContainer/VBoxContainer/MobileControls
+@onready var mobile_controls: HBoxContainer = $MarginContainer/VBoxContainer/ControlDeck/DeckContent/MobileControls
+@onready var joystick: ArcadeJoystick = $MarginContainer/VBoxContainer/ControlDeck/DeckContent/MobileControls/MovementControls
 @onready var battle_overlay: BattleOverlay = $BattleOverlay
 
 var skill_buttons: Dictionary = {}
@@ -47,9 +48,10 @@ func _ready() -> void:
 		event_bus.event_emitted.connect(_on_event_emitted)
 	if input_controller != null:
 		_connect_mobile_controls()
+		joystick.direction_changed.connect(_on_joystick_direction_changed)
+		joystick.direction_repeated.connect(_on_joystick_direction_repeated)
 		if input_controller.has_signal("pause_requested"):
 			input_controller.pause_requested.connect(_on_pause_requested)
-	_style_mobile_controls()
 	if battle_overlay != null:
 		battle_overlay.resume_requested.connect(_on_resume_requested)
 		battle_overlay.restart_requested.connect(_on_restart_requested)
@@ -57,6 +59,8 @@ func _ready() -> void:
 	_build_effect_legend()
 	call_deferred("_build_skill_buttons")
 	call_deferred("_configure_special_gem_panel")
+	get_viewport().size_changed.connect(_apply_control_dimensions)
+	_apply_control_dimensions()
 	_update_hud()
 	_update_state_summary()
 
@@ -101,9 +105,6 @@ func _build_effect_legend() -> void:
 
 func _connect_mobile_controls() -> void:
 	var controls: Dictionary = {
-		"MovementControls/MoveLeft": "try_move_left",
-		"MovementControls/SoftDrop": "try_soft_drop",
-		"MovementControls/MoveRight": "try_move_right",
 		"ActionControls/Rotate": "try_rotate",
 		"ActionControls/HardDrop": "try_hard_drop",
 		"ActionControls/Pause": "try_pause",
@@ -113,6 +114,25 @@ func _connect_mobile_controls() -> void:
 		var method_name: String = controls[button_path]
 		if input_controller.has_method(method_name):
 			button.pressed.connect(Callable(input_controller, method_name))
+
+func _on_joystick_direction_changed(direction: StringName) -> void:
+	if direction == &"":
+		return
+	_execute_joystick_direction(direction)
+
+func _on_joystick_direction_repeated(direction: StringName) -> void:
+	_execute_joystick_direction(direction)
+
+func _execute_joystick_direction(direction: StringName) -> void:
+	if input_controller == null or get_tree().paused:
+		return
+	match direction:
+		&"left":
+			input_controller.call("try_move_left")
+		&"right":
+			input_controller.call("try_move_right")
+		&"down":
+			input_controller.call("try_soft_drop")
 
 func _build_skill_buttons() -> void:
 	if battle_controller == null or not battle_controller.has_method("get_player_skill_definitions"):
@@ -144,31 +164,39 @@ func _skill_accent(index: int) -> Color:
 		_:
 			return MOVEMENT_ACCENT
 
-func _style_mobile_controls() -> void:
-	var accents: Dictionary = {
-		"MovementControls/MoveLeft": MOVEMENT_ACCENT,
-		"MovementControls/SoftDrop": ENERGY_ACCENT,
-		"MovementControls/MoveRight": MOVEMENT_ACCENT,
-		"ActionControls/Rotate": ACTION_ACCENT,
-		"ActionControls/HardDrop": ENERGY_ACCENT,
-		"ActionControls/Pause": PAUSE_ACCENT,
-	}
-	for button_path: String in accents:
-		var button := mobile_controls.get_node(button_path) as Button
-		_style_arcade_button(button, accents[button_path])
+func _apply_control_dimensions() -> void:
+	var viewport_width: float = get_viewport().get_visible_rect().size.x
+	var control_size: float = clampf(viewport_width * 0.13, 56.0, 68.0)
+	var joystick_width: float = clampf(viewport_width * 0.22, 96.0, 124.0)
+	var joystick_height: float = clampf(viewport_width * 0.20, 96.0, 112.0)
+	joystick.custom_minimum_size = Vector2(joystick_width, joystick_height)
+	for path: String in ["ActionControls/Rotate", "ActionControls/HardDrop", "ActionControls/Pause"]:
+		var button := mobile_controls.get_node(path) as Button
+		button.custom_minimum_size = Vector2(control_size, control_size)
+		_style_arcade_button(button, _action_accent(path), true)
 
-func _style_arcade_button(button: Button, accent: Color) -> void:
-	button.add_theme_stylebox_override("normal", _make_button_style(accent, "normal"))
-	button.add_theme_stylebox_override("hover", _make_button_style(accent, "hover"))
-	button.add_theme_stylebox_override("pressed", _make_button_style(accent, "pressed"))
-	button.add_theme_stylebox_override("disabled", _make_button_style(accent, "disabled"))
+func _action_accent(button_path: String) -> Color:
+	match button_path:
+		"ActionControls/Rotate":
+			return ACTION_ACCENT
+		"ActionControls/HardDrop":
+			return ENERGY_ACCENT
+		_:
+			return PAUSE_ACCENT
+
+func _style_arcade_button(button: Button, accent: Color, circular: bool = false) -> void:
+	var diameter: float = button.custom_minimum_size.x
+	button.add_theme_stylebox_override("normal", _make_button_style(accent, "normal", circular, diameter))
+	button.add_theme_stylebox_override("hover", _make_button_style(accent, "hover", circular, diameter))
+	button.add_theme_stylebox_override("pressed", _make_button_style(accent, "pressed", circular, diameter))
+	button.add_theme_stylebox_override("disabled", _make_button_style(accent, "disabled", circular, diameter))
 	button.add_theme_color_override("font_color", Color(0.91, 0.95, 1.0))
 	button.add_theme_color_override("font_hover_color", Color.WHITE)
 	button.add_theme_color_override("font_pressed_color", Color.WHITE)
 	button.add_theme_color_override("font_disabled_color", Color(0.48, 0.55, 0.62))
-	button.add_theme_font_size_override("font_size", 14)
+	button.add_theme_font_size_override("font_size", 11 if circular else 14)
 
-func _make_button_style(accent: Color, state: String) -> StyleBoxFlat:
+func _make_button_style(accent: Color, state: String, circular: bool = false, diameter: float = 68.0) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.055, 0.09, 0.13, 0.98)
 	style.border_color = accent
@@ -176,10 +204,11 @@ func _make_button_style(accent: Color, state: String) -> StyleBoxFlat:
 	style.border_width_top = 2
 	style.border_width_right = 2
 	style.border_width_bottom = 2
-	style.corner_radius_top_left = 7
-	style.corner_radius_top_right = 7
-	style.corner_radius_bottom_right = 7
-	style.corner_radius_bottom_left = 7
+	var radius := int(diameter * 0.5) if circular else 7
+	style.corner_radius_top_left = radius
+	style.corner_radius_top_right = radius
+	style.corner_radius_bottom_right = radius
+	style.corner_radius_bottom_left = radius
 	style.content_margin_left = 8.0
 	style.content_margin_top = 6.0
 	style.content_margin_right = 8.0

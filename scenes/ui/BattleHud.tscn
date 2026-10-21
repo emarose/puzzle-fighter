@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/BattleOverlay.tscn" id="2_overlay"]
 [ext_resource type="PackedScene" path="res://scenes/ui/SpecialGemPanel.tscn" id="3_gems"]
 [ext_resource type="PackedScene" path="res://scenes/ui/SpecialGemToast.tscn" id="4_toast"]
+[ext_resource type="PackedScene" path="res://scenes/ui/ArcadeJoystick.tscn" id="5_joystick"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gem_panel"]
 bg_color = Color(0.055, 0.082, 0.12, 0.96)
@@ -37,6 +38,24 @@ content_margin_top = 5.0
 content_margin_right = 8.0
 content_margin_bottom = 5.0
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_control_deck"]
+bg_color = Color(0.035, 0.055, 0.078, 0.98)
+border_color = Color(0.20, 0.31, 0.39, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+content_margin_left = 10.0
+content_margin_top = 8.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
+shadow_color = Color(0.0, 0.0, 0.0, 0.5)
+shadow_size = 3
+
 [node name="BattleHud" type="CanvasLayer" unique_id=290763512]
 script = ExtResource("1_3m3du")
 
@@ -50,7 +69,7 @@ mouse_filter = 2
 theme_override_constants/margin_left = 16
 theme_override_constants/margin_top = 16
 theme_override_constants/margin_right = 16
-theme_override_constants/margin_bottom = 16
+theme_override_constants/margin_bottom = 24
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=189264558]
 layout_mode = 2
@@ -93,59 +112,57 @@ size_flags_vertical = 3
 mouse_filter = 2
 
 [node name="SkillButtons" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=1713829096]
+custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 8
 
-[node name="MobileControls" type="VBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=782920892]
+[node name="ControlDeck" type="PanelContainer" parent="MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 144)
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 8
+theme_override_styles/panel = SubResource("StyleBoxFlat_control_deck")
 
-[node name="MovementControls" type="HBoxContainer" parent="MarginContainer/VBoxContainer/MobileControls" unique_id=1608943131]
+[node name="DeckContent" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ControlDeck"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="DeckLabel" type="Label" parent="MarginContainer/VBoxContainer/ControlDeck/DeckContent"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.48, 0.64, 0.73, 1)
+theme_override_font_sizes/font_size = 10
+text = "ARCADE CONTROLS"
+horizontal_alignment = 1
+
+[node name="MobileControls" type="HBoxContainer" parent="MarginContainer/VBoxContainer/ControlDeck/DeckContent" unique_id=782920892]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 8
+size_flags_vertical = 3
+theme_override_constants/separation = 10
 
-[node name="MoveLeft" type="Button" parent="MarginContainer/VBoxContainer/MobileControls/MovementControls" unique_id=382114686]
-custom_minimum_size = Vector2(0, 64)
+[node name="MovementControls" parent="MarginContainer/VBoxContainer/ControlDeck/DeckContent/MobileControls" instance=ExtResource("5_joystick")]
+layout_mode = 2
+
+[node name="ActionControls" type="HBoxContainer" parent="MarginContainer/VBoxContainer/ControlDeck/DeckContent/MobileControls" unique_id=1964868956]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Left"
-
-[node name="SoftDrop" type="Button" parent="MarginContainer/VBoxContainer/MobileControls/MovementControls" unique_id=1545801568]
-custom_minimum_size = Vector2(0, 64)
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Down"
-
-[node name="MoveRight" type="Button" parent="MarginContainer/VBoxContainer/MobileControls/MovementControls" unique_id=1046043006]
-custom_minimum_size = Vector2(0, 64)
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Right"
-
-[node name="ActionControls" type="HBoxContainer" parent="MarginContainer/VBoxContainer/MobileControls" unique_id=1964868956]
-layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 8
+alignment = 1
+theme_override_constants/separation = 10
 
-[node name="Rotate" type="Button" parent="MarginContainer/VBoxContainer/MobileControls/ActionControls" unique_id=2138187789]
-custom_minimum_size = Vector2(0, 64)
+[node name="Rotate" type="Button" parent="MarginContainer/VBoxContainer/ControlDeck/DeckContent/MobileControls/ActionControls" unique_id=2138187789]
+custom_minimum_size = Vector2(56, 56)
 layout_mode = 2
-size_flags_horizontal = 3
-text = "Rotate"
+text = "ROTATE"
 
-[node name="HardDrop" type="Button" parent="MarginContainer/VBoxContainer/MobileControls/ActionControls" unique_id=9511537]
-custom_minimum_size = Vector2(0, 64)
+[node name="HardDrop" type="Button" parent="MarginContainer/VBoxContainer/ControlDeck/DeckContent/MobileControls/ActionControls" unique_id=9511537]
+custom_minimum_size = Vector2(56, 56)
 layout_mode = 2
-size_flags_horizontal = 3
-text = "Drop"
+text = "DROP"
 
-[node name="Pause" type="Button" parent="MarginContainer/VBoxContainer/MobileControls/ActionControls" unique_id=1001831720]
-custom_minimum_size = Vector2(0, 64)
+[node name="Pause" type="Button" parent="MarginContainer/VBoxContainer/ControlDeck/DeckContent/MobileControls/ActionControls" unique_id=1001831720]
+custom_minimum_size = Vector2(56, 56)
 layout_mode = 2
-size_flags_horizontal = 3
-text = "Pause"
+text = "PAUSE"
 
 [node name="BattleOverlay" parent="." unique_id=1217654048 instance=ExtResource("2_overlay")]

@@ -1,7 +1,7 @@
 extends Node
 
 const BOARD_SIZE := Vector2(240.0, 400.0)
-const SIDE_MARGIN := 12.0
+const SIDE_MARGIN := 18.0
 const MAX_BOARD_GAP := 36.0
 const RESERVED_BOTTOM_SPACE := 280.0
 
@@ -21,7 +21,7 @@ func _apply_layout() -> void:
 	var horizontal_scale: float = (
 		(viewport_size.x - SIDE_MARGIN * 2.0 - board_gap) / (BOARD_SIZE.x * 2.0)
 	)
-	var board_top: float = maxf(140.0, viewport_size.y * 0.27)
+	var board_top: float = maxf(140.0, viewport_size.y * 0.30)
 	var available_board_height: float = viewport_size.y - RESERVED_BOTTOM_SPACE - board_top
 	var vertical_scale: float = available_board_height / BOARD_SIZE.y
 	var board_scale: float = clampf(minf(horizontal_scale, vertical_scale), 0.1, 1.0)

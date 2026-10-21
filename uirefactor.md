@@ -1,236 +1,193 @@
-# Task: Refactor the Main Gameplay UI into a Retro Arcade Fighting Interface (Godot)
+# Task: Implement the Arcade Cabinet Layout and Control Deck
 
-## Context
+## Objective
 
-This project is a mobile portrait puzzle-combat game developed in Godot. The current gameplay screen already works and includes:
+The current Godot gameplay UI has already received an initial visual styling pass. The dark background, cyan and magenta board frames, character HUDs, and general color palette are in place.
 
-- Two opposing characters: Soldier and Orc, each with a health bar.
-- Two side-by-side puzzle boards.
-- Colored blocks representing different combat effects.
-- Combat statistics, including guard and energy.
-- Three skill buttons: Burst, Heal, and Pulse.
-- Touch controls for Left, Down, Right, Rotate, Drop, and Pause.
+However, the main visual elements that define the intended arcade cabinet aesthetic are still missing:
 
-Use the attached arcade cabinet reference image as the primary visual direction.
+1. A designed arcade-style background and outer cabinet frame.
+2. A dedicated lower control deck inspired by a physical arcade machine.
+3. A redesigned arrangement of the touch controls, including a virtual joystick and distinct action buttons.
+4. A better use of vertical space to make the gameplay screen feel like a cohesive arcade machine.
 
-The goal is to transform the existing gameplay UI into a polished retro arcade fighting-game interface while preserving the current game mechanics and the project's existing architecture.
+Use the two attached images as references:
+- The current screenshot shows the actual implementation and layout that must be improved.
+- The arcade cabinet concept image shows the intended visual direction and control layout.
 
-**This is a UI and visual presentation refactor, not a gameplay rewrite.**
+**Implement these structural and visual changes in the existing Godot project. Do not merely restyle the existing rectangular buttons.**
 
-## 1. Visual direction
+## 1. Inspect the current implementation first
 
-Create a cohesive visual style inspired by classic arcade fighting games, CRT displays, and industrial arcade cabinets.
+Before making changes, inspect the actual gameplay scene, its scripts, node hierarchy, layout containers, anchors, and input handling.
 
-Use the reference image for its overall visual language:
+Identify:
+- The root gameplay Control or equivalent.
+- The background and existing decorative elements.
+- The character HUDs and puzzle boards.
+- The skill buttons.
+- The movement, rotation, drop, and pause controls.
+- The signals and scripts responsible for handling user input.
 
-- Dark metallic panels and frames.
-- Deep navy, charcoal, and steel-blue backgrounds.
-- Cyan and magenta neon accents.
-- Pixel-art characters and arcade-inspired typography.
-- Clearly separated HUD sections.
-- Strong visual hierarchy and readable combat information.
-- Tactile-looking buttons with borders, highlights, shadows, and pressed states.
+Determine which existing elements can be repositioned and which require a new reusable scene or visual component.
 
-Suggested palette:
-- Background: #17191F
-- Dark panels: #202B35
-- Board background: #15212B
-- Grid lines: muted blue-gray
-- Cyan accents: #28D7E5
-- Magenta accents: #E84B79
+Briefly explain the intended structural changes before implementing them. Do not assume node names or file paths.
 
-Preserve the existing combat colors and their meanings. Red, yellow, and green blocks must remain immediately distinguishable.
+## 2. Create an arcade cabinet background
 
-The result should feel like playing a retro arcade fighting game, not like using a generic mobile application.
+Replace the current plain, nearly black background with a designed retro arcade environment.
 
-## 2. First inspect the existing project
+The background should visually resemble the inside of a dark, futuristic arcade cabinet, using:
 
-Before modifying anything:
+- A deep charcoal or navy base.
+- Subtle industrial metal panels and recessed sections.
+- Thin cyan and magenta illuminated accents.
+- Pixel-art-inspired borders, corner details, and small mechanical elements.
+- A restrained CRT-inspired finish, if appropriate.
 
-1. Identify the current main gameplay scene and its associated scripts.
-2. Inspect the scene hierarchy and identify the existing UI nodes, puzzle boards, character sprites, health bars, skill buttons, and touch controls.
-3. Determine which elements are implemented using Control nodes, Containers, custom drawing, or other Godot UI mechanisms.
-4. Identify how the current layout adapts to portrait resolutions and different screen sizes.
-5. Determine which UI elements are connected to gameplay logic through signals, scripts, or references.
+Create a clear visual distinction between the main gameplay screen and the surrounding cabinet frame.
 
-Reuse existing scenes, nodes, scripts, and assets wherever practical.
+The background must remain behind the existing gameplay elements. It must not obscure the boards, characters, text, or controls.
 
-Do not assume node names or file paths. Inspect the project and adapt the implementation to its actual structure.
+Prefer reusable Godot UI resources, scalable frame textures, NinePatchRect, TextureRect, or custom drawing where appropriate.
 
-Before editing, briefly summarize the proposed changes and identify any architectural constraints.
+If additional graphical assets are necessary, identify the exact assets required and use existing project assets where possible. Do not substitute the requested cabinet design with another flat background or a collection of generic colored borders.
 
-## 3. Main screen composition
+Avoid excessive textures, heavy glow effects, and decorative details that reduce readability or performance on mobile.
 
-Reorganize the existing screen into the following visual hierarchy:
+## 3. Redesign the bottom section as an arcade control deck
 
-### A. Compact top HUD
+The most important structural change is to replace the current uniform rectangular control layout with a visually integrated arcade control deck.
 
-- Replace the plain gray background with a dark arcade-style interface.
-- Keep the block-effect legend compact and readable.
-- Remove redundant information and unnecessary empty legend entries where appropriate.
-- Introduce subtle panel borders, small indicators, and restrained neon accents.
-- Avoid a large decorative title if it would consume valuable gameplay space.
+Create a distinct lower panel that looks like a physical control surface embedded in the cabinet.
 
-### B. Character combat HUD
+The panel should have a dark metallic surface, a defined outer frame, subtle highlights, and restrained neon illumination.
 
-- Improve the presentation of the Soldier and Orc.
-- Preserve the existing character sprites and their visual identity.
-- Give each character a clear health bar and a compact status area.
-- Improve the presentation of health, guard, and energy.
-- Use distinct accent colors to help differentiate the two sides.
-- Add a subtle central VS separator only if it fits the available space.
-- Ensure that health and status values remain readable at mobile scale.
+### Left side: virtual joystick
 
-Avoid unnecessarily enlarging the character panels or pushing the puzzle boards down.
+Replace the current Left, Down, and Right rectangular buttons with a virtual joystick.
 
-### C. Puzzle boards
+The joystick should visually include:
+- A circular recessed base.
+- A visible central stick and rounded knob.
+- A red or magenta accent consistent with the arcade reference.
+- A clear pressed or active state.
 
-The two puzzle boards are the primary gameplay elements and must remain the visual focus.
+The joystick must be functional, not decorative.
 
-- Preserve their current dimensions, grid structure, cell arrangement, and gameplay behavior unless a layout adjustment is necessary.
-- Replace the flat presentation with a dark inset panel surrounded by a restrained metallic or neon frame.
-- Keep the grid lines visible but less prominent than the blocks.
-- Give blocks subtle depth through borders, highlights, and shadows, without changing their logical colors or gameplay representation.
-- Ensure that the left and right boards remain aligned and visually balanced.
+Inspect the existing input system and implement touch interaction that supports the game's required directional movement. Prefer intuitive dragging or directional touch input, with appropriate handling for mobile screens.
 
-Use decorative frames around the existing board components rather than rebuilding the boards from scratch.
+Preserve the existing movement behavior and repeat timing wherever possible. Prevent the joystick from generating unintended repeated touches or leaving movement stuck when the player releases their finger.
 
-The reference image uses a strong blue-versus-magenta composition. Apply this selectively so that it does not compete with block colors or make the interface visually noisy.
+If implementing a virtual joystick would require a significant gameplay input rewrite, explain the required changes before proceeding.
 
-### D. Skill buttons
+### Right side: action buttons
 
-Restyle Burst, Heal, and Pulse as arcade-style action buttons.
+Create a dedicated group of arcade-style action buttons.
 
-- Make each skill visually distinct.
-- Use icons, labels, costs, and keyboard hints only where they are already supported or relevant.
-- Improve disabled, available, pressed, and unavailable states.
-- Preserve their existing signals and gameplay behavior.
-- Make the controls easy to understand without relying exclusively on color.
+Use separate visual treatments to distinguish:
+- Rotate.
+- Drop.
+- Pause.
+- The primary action, if the existing gameplay mechanics support it.
 
-Do not implement new skills or change their costs as part of this task.
+Use circular or rounded physical-button designs with a raised appearance, highlights, shadows, and pressed states.
 
-### E. Touch controls
+Use blue, yellow, green, and magenta accents selectively. Keep the primary action visually prominent without making it excessively large.
 
-Restyle Left, Down, Right, Rotate, Drop, and Pause to match the arcade theme.
+Preserve the existing button actions and signal connections. Do not change the underlying gameplay mechanics.
 
-- Use a coherent visual language for directional and action controls.
-- Make Rotate and Drop easy to distinguish from movement.
-- Preserve Pause and its existing behavior.
-- Provide clear visual feedback when a control is pressed.
-- Maintain comfortable touch targets and sufficient spacing to prevent accidental input.
+Do not invent new actions or implement an unrequested combat mechanic.
 
-The reference image contains a physical joystick and arcade buttons. Treat these as visual inspiration, not a requirement to reproduce a physical cabinet literally.
+### Skill buttons
 
-The game must remain comfortable to play on a touchscreen. Do not replace working touch controls with a decorative joystick that has no functional input.
+Keep Burst, Heal, and Pulse in a separate row immediately above the control deck.
 
-If a virtual joystick would require changing input handling, leave that change out of scope unless the existing project already supports it.
+Restyle them as compact illuminated arcade buttons or recessed skill panels. Preserve their current functionality, costs, availability states, and labels.
 
-## 4. Background and arcade frame
+Ensure that the skill row and the control deck remain visually distinct.
 
-Replace the flat gray gameplay background with a dark, restrained arcade environment.
+## 4. Rework the vertical layout
 
-The preferred approach is a combination of:
+The current layout has a large empty area between the puzzle boards and the controls. Use this space more effectively.
 
-- A charcoal or deep navy background.
-- Subtle metallic paneling around the HUD and board edges.
-- Thin cyan and magenta accent lines.
-- Optional, very subtle CRT scanlines or vignette effects.
-- Small industrial details that reinforce the arcade cabinet aesthetic.
+Reorganize the screen into a cohesive vertical composition:
 
-Keep the decorative elements concentrated around the outer edges and between UI sections.
+1. Compact combat legend.
+2. Character sprites and combat HUDs.
+3. The two puzzle boards, which remain the main gameplay focus.
+4. A compact skill-button row.
+5. A dedicated arcade control deck at the bottom.
 
-Do not place detailed textures behind the puzzle cells or important text.
+Reduce unnecessary vertical gaps and integrate the sections visually into the cabinet design.
 
-Do not create a large, illustrated fighting arena or a full-screen cabinet illustration that reduces the usable gameplay area.
+Do not simply scale up the controls or move the entire layout upward.
 
-The interface should suggest an arcade machine while still feeling like a native portrait mobile game.
+Keep both puzzle boards visible and usable, with enough space for their complete grids and existing interactions.
 
-## 5. Godot implementation requirements
+The character sprites should remain recognizable and should not overlap the HUD or boards.
 
-Implement the visual changes using the project's existing Godot version and conventions.
+The bottom control deck must fit above the device's bottom safe area and must not be clipped by the screen edge.
 
-Prefer reusable UI components and shared styling over duplicating custom styling across every control.
+## 5. Godot layout and implementation
 
-Where appropriate, consider:
+Implement the changes using the project's existing Godot version and architecture.
 
-- Control nodes and Containers for layout.
-- Anchors and size flags for responsive positioning.
-- Theme resources and StyleBoxFlat resources for consistent panels and buttons.
-- NinePatchRect or suitable reusable textures for frames that need scalable borders.
-- TextureRect for decorative textures and sprites.
-- Reusable scenes for common panel and button styles.
+Use responsive Control layouts, appropriate Containers, anchors, size flags, and reusable scenes or Theme resources where suitable.
 
-These are implementation options, not mandatory replacements for an existing architecture that already works well.
+Avoid hardcoding the layout to the exact dimensions of either reference image.
 
-Avoid hardcoding the entire interface to the dimensions of the reference screenshot.
+The interface must adapt to portrait screens with different aspect ratios.
 
-The layout must adapt to different portrait resolutions and aspect ratios without overlapping controls, clipping text, distorting sprites, or making touch targets too small.
+If the current scene has tightly coupled layout logic, refactor only the parts needed to support the new composition.
 
-Keep gameplay logic separate from presentation logic wherever practical.
+Separate visual presentation from gameplay logic. Keep the board implementation, combat state, and game rules unchanged.
 
-Do not introduce unnecessary autoloads, managers, dependencies, or new architectural layers just to implement the visual refactor.
+Do not replace existing working components with static mockups.
+
+Do not add unnecessary autoloads, managers, or architectural layers.
 
 ## 6. Preserve functionality
 
-This task must not break or redesign the existing gameplay systems.
+The following must continue to work:
 
-Preserve:
+- Both puzzle boards and their current grid dimensions.
+- Block spawning, movement, rotation, and dropping.
+- Character health and status updates.
+- Burst, Heal, and Pulse.
+- Pause and resume.
+- Existing touch interactions and gameplay signals.
+- Any existing group highlighting or block-resolution interactions.
 
-- Board logic, cell coordinates, and block spawning.
-- Existing block colors and their effects.
-- Character health and combat status updates.
-- Skill activation and energy costs.
-- Movement, rotation, drop, and pause behavior.
-- Existing signals, script references, and gameplay state.
-- Any existing prepared-group highlighting or block-resolution interactions.
+Verify that all new controls trigger the same intended actions as their existing counterparts.
 
-Do not replace functional gameplay components with static visual mockups.
+## 7. Implementation workflow
 
-Do not duplicate gameplay state inside the UI.
+Implement this as a focused second visual iteration.
 
-If a visual change requires modifying a script, keep the modification minimal and explain why it is necessary.
+**Phase 1: Layout and cabinet structure**
+- Reorganize the scene hierarchy as needed.
+- Add the cabinet background and frame.
+- Create the lower control deck.
+- Reposition the skill row and controls.
 
-## 7. Scope and implementation process
+**Phase 2: Control implementation**
+- Implement the virtual joystick interaction.
+- Create the new action-button visuals and pressed states.
+- Connect them to the existing input and gameplay systems.
 
-Implement this as an incremental refactor.
+**Phase 3: Validation**
+- Run the game and inspect the actual scene.
+- Test the joystick and every action button.
+- Verify the complete layout at the target portrait resolution and at least one different portrait aspect ratio.
+- Fix clipping, overlap, excessive empty space, and insufficient touch targets.
 
-**Phase 1 — Structure and layout**
-- Identify the existing scene and its dependencies.
-- Establish the new background, panel hierarchy, and responsive layout.
-- Preserve all current functionality.
+Do not stop after creating a plan or a static visual mockup. Implement the changes in the actual project files, then report what was changed and what still needs testing.
 
-**Phase 2 — Visual styling**
-- Apply the arcade palette, metallic frames, HUD styling, skill button styling, and touch-control styling.
-- Reuse existing sprites and assets wherever possible.
-- Add simple visual details only when they improve hierarchy or readability.
+## Expected result
 
-**Phase 3 — Validation and polish**
-- Run the project and inspect the actual gameplay screen.
-- Verify that the two boards, characters, HUD, skills, and controls remain visible and functional.
-- Check at least the project's target portrait resolution and a narrower or taller portrait aspect ratio.
-- Fix layout issues and remove unnecessary decorative elements.
+The final screen should feel like a playable retro arcade fighting machine adapted for mobile, rather than a conventional mobile UI with neon borders.
 
-Do not implement all phases through a single massive rewrite. Make focused changes that are easy to review and test.
+The cabinet background, character HUD, puzzle boards, skill row, virtual joystick, and action buttons should form one coherent design.
 
-## 8. Expected result
-
-Deliver a working Godot gameplay scene that retains the current game's layout and mechanics while achieving a coherent retro arcade fighting-game aesthetic.
-
-The result should have:
-
-- A dark industrial arcade background.
-- A visually distinctive but compact combat HUD.
-- Clearly framed puzzle boards.
-- Consistent arcade-style skill and touch controls.
-- A restrained cyan/magenta lighting scheme.
-- Preserved pixel-art characters and block colors.
-- Responsive portrait layout and readable mobile controls.
-
-Prioritize gameplay readability, visual consistency, and maintainability over decorative complexity.
-
-After implementation, summarize:
-1. Which scenes and scripts were changed.
-2. Which reusable UI components or resources were created.
-3. How the layout adapts to portrait screens.
-4. Which existing behaviors were verified.
-5. Any remaining visual assets or polish that would benefit from a later iteration.
+Prioritize the physical arcade feeling of the control deck and the outer frame while preserving the puzzle boards as the primary gameplay area.
