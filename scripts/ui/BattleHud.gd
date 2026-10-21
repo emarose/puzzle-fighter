@@ -26,6 +26,17 @@ const MOVEMENT_ACCENT := Color(0.16, 0.78, 0.88)
 const ACTION_ACCENT := Color(0.91, 0.29, 0.48)
 const ENERGY_ACCENT := Color(0.95, 0.68, 0.18)
 const PAUSE_ACCENT := Color(0.42, 0.58, 0.72)
+const HUD_ATLAS := preload("res://assets/ui/Pixel Sci-Fi HUD Sprite Atlas.png")
+const ARCADE_ATLAS := preload("res://assets/ui/Neon Pixel Arcade UI Atlas-1.png")
+const SKILL_PLATE_CYAN := Rect2(183, 621, 191, 71)
+const SKILL_PLATE_AMBER := Rect2(412, 621, 186, 70)
+const SKILL_ICON_REGIONS := {
+	"burst": Rect2(525, 871, 142, 136),
+	"heal": Rect2(686, 871, 142, 136),
+	"pulse": Rect2(847, 871, 142, 136),
+}
+const PAUSE_PATH := "ControlDeck/DeckContent/DeckHeader/Pause"
+const PAUSE_BUTTON_SIZE := 32.0
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -107,10 +118,10 @@ func _connect_mobile_controls() -> void:
 	var controls: Dictionary = {
 		"ActionControls/Rotate": "try_rotate",
 		"ActionControls/HardDrop": "try_hard_drop",
-		"ActionControls/Pause": "try_pause",
+		PAUSE_PATH: "try_pause",
 	}
 	for button_path: String in controls:
-		var button: Button = mobile_controls.get_node(button_path)
+		var button: Button = _get_action_button(button_path)
 		var method_name: String = controls[button_path]
 		if input_controller.has_method(method_name):
 			button.pressed.connect(Callable(input_controller, method_name))
@@ -144,16 +155,54 @@ func _build_skill_buttons() -> void:
 	for index in range(skill_definitions.size()):
 		var definition: SkillDefinition = skill_definitions[index]
 		var button := Button.new()
-		button.custom_minimum_size.y = 64
+		button.custom_minimum_size.y = 56
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var shortcut: String = " [%d]" % (index + 1) if index < 3 else ""
-		button.text = "%s (%d)%s" % [definition.name, definition.cost, shortcut]
+		button.text = "%s\n(%d)%s" % [definition.name, definition.cost, shortcut]
 		button.tooltip_text = definition.description
-		_style_arcade_button(button, _skill_accent(index))
+		_style_skill_button(button, definition.id)
 		button.pressed.connect(_on_skill_button_pressed.bind(definition.id))
 		skill_buttons_container.add_child(button)
 		skill_buttons[definition.id] = button
 	_update_skill_buttons()
+
+func _style_skill_button(button: Button, skill_id: String) -> void:
+	button.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	button.add_theme_stylebox_override("normal", _make_skill_plate(SKILL_PLATE_CYAN))
+	button.add_theme_stylebox_override("hover", _make_skill_plate(SKILL_PLATE_CYAN))
+	button.add_theme_stylebox_override("pressed", _make_skill_plate(SKILL_PLATE_AMBER))
+	button.add_theme_stylebox_override("disabled", _make_skill_plate(SKILL_PLATE_CYAN))
+	button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	button.add_theme_color_override("font_color", Color(0.91, 0.95, 1.0))
+	button.add_theme_color_override("font_hover_color", Color.WHITE)
+	button.add_theme_color_override("font_pressed_color", Color(1.0, 0.9, 0.55))
+	button.add_theme_color_override("font_disabled_color", Color(0.5, 0.57, 0.64))
+	button.add_theme_font_size_override("font_size", 12)
+	button.add_theme_constant_override("h_separation", 6)
+	button.add_theme_constant_override("icon_max_width", 30)
+	button.expand_icon = true
+	button.alignment = HORIZONTAL_ALIGNMENT_CENTER
+	if SKILL_ICON_REGIONS.has(skill_id):
+		var icon := AtlasTexture.new()
+		icon.atlas = ARCADE_ATLAS
+		icon.region = SKILL_ICON_REGIONS[skill_id]
+		button.icon = icon
+
+func _make_skill_plate(region: Rect2) -> StyleBoxTexture:
+	var plate := AtlasTexture.new()
+	plate.atlas = HUD_ATLAS
+	plate.region = region
+	var style := StyleBoxTexture.new()
+	style.texture = plate
+	style.texture_margin_left = 22.0
+	style.texture_margin_right = 22.0
+	style.texture_margin_top = 18.0
+	style.texture_margin_bottom = 18.0
+	style.content_margin_left = 20.0
+	style.content_margin_right = 20.0
+	style.content_margin_top = 6.0
+	style.content_margin_bottom = 6.0
+	return style
 
 func _skill_accent(index: int) -> Color:
 	match index % 3:
@@ -170,10 +219,32 @@ func _apply_control_dimensions() -> void:
 	var joystick_width: float = clampf(viewport_width * 0.22, 96.0, 124.0)
 	var joystick_height: float = clampf(viewport_width * 0.20, 96.0, 112.0)
 	joystick.custom_minimum_size = Vector2(joystick_width, joystick_height)
-	for path: String in ["ActionControls/Rotate", "ActionControls/HardDrop", "ActionControls/Pause"]:
-		var button := mobile_controls.get_node(path) as Button
-		button.custom_minimum_size = Vector2(control_size, control_size)
-		_style_arcade_button(button, _action_accent(path), true)
+	for path: String in ["ActionControls/Rotate", "ActionControls/HardDrop", PAUSE_PATH]:
+		var button := _get_action_button(path)
+		var button_size: float = PAUSE_BUTTON_SIZE if path == PAUSE_PATH else control_size
+		button.custom_minimum_size = Vector2(button_size, button_size)
+		button.add_theme_constant_override("icon_max_width", int(button_size - 4.0))
+		_style_arcade_button(button, _action_accent(path), true, true)
+		if not button.has_meta("arcade_art_feedback_connected"):
+			button.mouse_entered.connect(_on_action_button_hovered.bind(button))
+			button.mouse_exited.connect(_on_action_button_idle.bind(button))
+			button.button_down.connect(_on_action_button_pressed.bind(button))
+			button.button_up.connect(_on_action_button_idle.bind(button))
+			button.set_meta("arcade_art_feedback_connected", true)
+
+func _get_action_button(path: String) -> Button:
+	if path == PAUSE_PATH:
+		return get_node("MarginContainer/VBoxContainer/" + path) as Button
+	return mobile_controls.get_node(path) as Button
+
+func _on_action_button_hovered(button: Button) -> void:
+	button.self_modulate = Color(1.12, 1.12, 1.12, 1.0)
+
+func _on_action_button_pressed(button: Button) -> void:
+	button.self_modulate = Color(0.76, 0.82, 0.92, 1.0)
+
+func _on_action_button_idle(button: Button) -> void:
+	button.self_modulate = Color.WHITE
 
 func _action_accent(button_path: String) -> Color:
 	match button_path:
@@ -184,12 +255,21 @@ func _action_accent(button_path: String) -> Color:
 		_:
 			return PAUSE_ACCENT
 
-func _style_arcade_button(button: Button, accent: Color, circular: bool = false) -> void:
+func _style_arcade_button(
+	button: Button,
+	accent: Color,
+	circular: bool = false,
+	use_artwork: bool = false
+) -> void:
 	var diameter: float = button.custom_minimum_size.x
-	button.add_theme_stylebox_override("normal", _make_button_style(accent, "normal", circular, diameter))
-	button.add_theme_stylebox_override("hover", _make_button_style(accent, "hover", circular, diameter))
-	button.add_theme_stylebox_override("pressed", _make_button_style(accent, "pressed", circular, diameter))
-	button.add_theme_stylebox_override("disabled", _make_button_style(accent, "disabled", circular, diameter))
+	if use_artwork:
+		for state: String in ["normal", "hover", "pressed", "disabled"]:
+			button.add_theme_stylebox_override(state, StyleBoxEmpty.new())
+	else:
+		button.add_theme_stylebox_override("normal", _make_button_style(accent, "normal", circular, diameter))
+		button.add_theme_stylebox_override("hover", _make_button_style(accent, "hover", circular, diameter))
+		button.add_theme_stylebox_override("pressed", _make_button_style(accent, "pressed", circular, diameter))
+		button.add_theme_stylebox_override("disabled", _make_button_style(accent, "disabled", circular, diameter))
 	button.add_theme_color_override("font_color", Color(0.91, 0.95, 1.0))
 	button.add_theme_color_override("font_hover_color", Color.WHITE)
 	button.add_theme_color_override("font_pressed_color", Color.WHITE)
@@ -429,3 +509,4 @@ func _update_skill_buttons() -> void:
 	for skill_id in skill_buttons:
 		var button: Button = skill_buttons[skill_id]
 		button.disabled = not battle_controller.can_use_skill(skill_id)
+		button.self_modulate = Color(0.55, 0.6, 0.7) if button.disabled else Color.WHITE

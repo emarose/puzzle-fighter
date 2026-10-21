@@ -9,10 +9,10 @@ const KNOB_TRAVEL_RATIO := 0.48
 const REPEAT_DELAY := 0.24
 const REPEAT_INTERVAL := 0.16
 
-const BASE_COLOR := Color(0.035, 0.05, 0.075, 1.0)
-const BASE_EDGE := Color(0.34, 0.42, 0.49, 1.0)
 const REST_COLOR := Color(0.78, 0.16, 0.35, 1.0)
 const ACTIVE_COLOR := Color(1.0, 0.30, 0.44, 1.0)
+
+@export var base_texture: Texture2D
 
 var _active_touch_index := -1
 var _mouse_active := false
@@ -112,10 +112,10 @@ func _draw() -> void:
 	var knob_radius := radius * 0.36
 	var active_color := ACTIVE_COLOR if _direction != &"" else REST_COLOR
 
-	draw_circle(center + Vector2(0.0, 3.0), radius + 3.0, Color(0.0, 0.0, 0.0, 0.48))
-	draw_circle(center, radius + 2.0, BASE_EDGE)
-	draw_circle(center, radius, BASE_COLOR)
-	draw_arc(center, radius - 3.0, 3.4, TAU - 0.25, 48, active_color.darkened(0.24), 2.0)
+	var base_size := radius * 2.6
+	var texture_size := base_texture.get_size()
+	var draw_size := texture_size * minf(base_size / texture_size.x, base_size / texture_size.y)
+	draw_texture_rect(base_texture, Rect2(center - draw_size * 0.5, draw_size), false)
 	_draw_direction_marks(center, radius)
 
 	var knob_center := center + _stick_offset

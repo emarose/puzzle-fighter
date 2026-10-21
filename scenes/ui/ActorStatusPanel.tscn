@@ -3,83 +3,74 @@
 [ext_resource type="Script" path="res://scripts/ui/ActorStatusPanel.gd" id="1_status"]
 [ext_resource type="Texture2D" path="res://assets/ui/guard.svg" id="2_guard"]
 [ext_resource type="Texture2D" path="res://assets/ui/energy.svg" id="3_energy"]
+[ext_resource type="Texture2D" path="res://assets/ui/Pixel Sci-Fi HUD Sprite Atlas.png" id="4_hud_atlas"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
-bg_color = Color(0.055, 0.075, 0.105, 0.96)
-border_color = Color(0.24, 0.31, 0.39, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-content_margin_left = 6.0
-content_margin_top = 4.0
-content_margin_right = 6.0
-content_margin_bottom = 4.0
+[sub_resource type="AtlasTexture" id="AtlasTexture_cyan"]
+atlas = ExtResource("4_hud_atlas")
+region = Rect2(42, 84, 573, 188)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_magenta"]
+atlas = ExtResource("4_hud_atlas")
+region = Rect2(920, 84, 574, 188)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_cyan"]
+content_margin_left = 16.0
+content_margin_top = 13.0
+content_margin_right = 16.0
+content_margin_bottom = 13.0
+texture = SubResource("AtlasTexture_cyan")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_magenta"]
+content_margin_left = 16.0
+content_margin_top = 13.0
+content_margin_right = 16.0
+content_margin_bottom = 13.0
+texture = SubResource("AtlasTexture_magenta")
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hp_background"]
-bg_color = Color(0.16, 0.19, 0.23, 1)
-corner_radius_top_left = 3
-corner_radius_top_right = 3
-corner_radius_bottom_right = 3
-corner_radius_bottom_left = 3
+bg_color = Color(0.03, 0.04, 0.06, 1)
+border_color = Color(0.2, 0.26, 0.34, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hp_fill"]
 bg_color = Color(0.82, 0.22, 0.27, 1)
-corner_radius_top_left = 3
-corner_radius_top_right = 3
-corner_radius_bottom_right = 3
-corner_radius_bottom_left = 3
 
 [node name="ActorStatusPanel" type="PanelContainer"]
-custom_minimum_size = Vector2(240, 72)
+texture_filter = 1
+custom_minimum_size = Vector2(240, 78)
 offset_right = 240.0
-offset_bottom = 72.0
+offset_bottom = 78.0
 mouse_filter = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+theme_override_styles/panel = SubResource("StyleBoxTexture_cyan")
 script = ExtResource("1_status")
+cyan_style = SubResource("StyleBoxTexture_cyan")
+magenta_style = SubResource("StyleBoxTexture_magenta")
 
-[node name="Content" type="VBoxContainer" parent="."]
+[node name="Content" type="HBoxContainer" parent="."]
 layout_mode = 2
-theme_override_constants/separation = 2
+theme_override_constants/separation = 6
 
-[node name="Heading" type="HBoxContainer" parent="Content"]
+[node name="Resources" type="VBoxContainer" parent="Content"]
+custom_minimum_size = Vector2(62, 0)
 layout_mode = 2
 theme_override_constants/separation = 4
-
-[node name="ActorName" type="Label" parent="Content/Heading"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Actor"
-text_overrun_behavior = 3
-
-[node name="HPValue" type="Label" parent="Content/Heading"]
-layout_mode = 2
-text = "100/100"
-horizontal_alignment = 2
-
-[node name="HPBar" type="ProgressBar" parent="Content"]
-custom_minimum_size = Vector2(0, 10)
-layout_mode = 2
-show_percentage = false
-theme_override_styles/background = SubResource("StyleBoxFlat_hp_background")
-theme_override_styles/fill = SubResource("StyleBoxFlat_hp_fill")
-value = 100.0
-
-[node name="Resources" type="HBoxContainer" parent="Content"]
-layout_mode = 2
-theme_override_constants/separation = 14
+alignment = 1
 
 [node name="Guard" type="HBoxContainer" parent="Content/Resources"]
 layout_mode = 2
 theme_override_constants/separation = 3
+alignment = 1
 
 [node name="Icon" type="TextureRect" parent="Content/Resources/Guard"]
 custom_minimum_size = Vector2(16, 16)
 layout_mode = 2
+tooltip_text = "Guard"
 texture = ExtResource("2_guard")
 expand_mode = 1
 stretch_mode = 5
-tooltip_text = "Guard"
 
 [node name="Amount" type="Label" parent="Content/Resources/Guard"]
 layout_mode = 2
@@ -88,15 +79,45 @@ text = "0"
 [node name="Energy" type="HBoxContainer" parent="Content/Resources"]
 layout_mode = 2
 theme_override_constants/separation = 3
+alignment = 1
 
 [node name="Icon" type="TextureRect" parent="Content/Resources/Energy"]
 custom_minimum_size = Vector2(16, 16)
 layout_mode = 2
+tooltip_text = "Energy"
 texture = ExtResource("3_energy")
 expand_mode = 1
 stretch_mode = 5
-tooltip_text = "Energy"
 
 [node name="Amount" type="Label" parent="Content/Resources/Energy"]
 layout_mode = 2
 text = "0/9"
+
+[node name="Info" type="VBoxContainer" parent="Content"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+alignment = 1
+
+[node name="Heading" type="HBoxContainer" parent="Content/Info"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="ActorName" type="Label" parent="Content/Info/Heading"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Actor"
+text_overrun_behavior = 3
+
+[node name="HPValue" type="Label" parent="Content/Info/Heading"]
+layout_mode = 2
+text = "100/100"
+horizontal_alignment = 2
+
+[node name="HPBar" type="ProgressBar" parent="Content/Info"]
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_hp_background")
+theme_override_styles/fill = SubResource("StyleBoxFlat_hp_fill")
+value = 100.0
+show_percentage = false

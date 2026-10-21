@@ -5,6 +5,19 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/SpecialGemPanel.tscn" id="3_gems"]
 [ext_resource type="PackedScene" path="res://scenes/ui/SpecialGemToast.tscn" id="4_toast"]
 [ext_resource type="PackedScene" path="res://scenes/ui/ArcadeJoystick.tscn" id="5_joystick"]
+[ext_resource type="Texture2D" path="res://assets/ui/Neon Pixel Arcade UI Atlas-1.png" id="6_atlas"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rotate"]
+atlas = ExtResource("6_atlas")
+region = Rect2(536, 663, 118, 130)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_drop"]
+atlas = ExtResource("6_atlas")
+region = Rect2(653, 663, 118, 130)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_pause"]
+atlas = ExtResource("6_atlas")
+region = Rect2(772, 664, 118, 130)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gem_panel"]
 bg_color = Color(0.055, 0.082, 0.12, 0.96)
@@ -112,7 +125,7 @@ size_flags_vertical = 3
 mouse_filter = 2
 
 [node name="SkillButtons" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=1713829096]
-custom_minimum_size = Vector2(0, 60)
+custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 8
@@ -127,12 +140,30 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_control_deck")
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="DeckLabel" type="Label" parent="MarginContainer/VBoxContainer/ControlDeck/DeckContent"]
+[node name="DeckHeader" type="HBoxContainer" parent="MarginContainer/VBoxContainer/ControlDeck/DeckContent"]
 layout_mode = 2
+mouse_filter = 2
+
+[node name="DeckLabel" type="Label" parent="MarginContainer/VBoxContainer/ControlDeck/DeckContent/DeckHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.48, 0.64, 0.73, 1)
 theme_override_font_sizes/font_size = 10
 text = "ARCADE CONTROLS"
 horizontal_alignment = 1
+
+[node name="Pause" type="Button" parent="MarginContainer/VBoxContainer/ControlDeck/DeckContent/DeckHeader"]
+modulate = Color(1, 1, 1, 0.75)
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+size_flags_vertical = 4
+texture_filter = 1
+tooltip_text = "Pause"
+icon = SubResource("AtlasTexture_pause")
+icon_alignment = 1
+vertical_icon_alignment = 1
+expand_icon = true
+theme_override_constants/icon_max_width = 28
 
 [node name="MobileControls" type="HBoxContainer" parent="MarginContainer/VBoxContainer/ControlDeck/DeckContent" unique_id=782920892]
 layout_mode = 2
@@ -153,16 +184,23 @@ theme_override_constants/separation = 10
 [node name="Rotate" type="Button" parent="MarginContainer/VBoxContainer/ControlDeck/DeckContent/MobileControls/ActionControls" unique_id=2138187789]
 custom_minimum_size = Vector2(56, 56)
 layout_mode = 2
-text = "ROTATE"
+texture_filter = 1
+icon = SubResource("AtlasTexture_rotate")
+icon_alignment = 1
+vertical_icon_alignment = 1
+expand_icon = true
+theme_override_constants/icon_max_width = 52
+tooltip_text = "Rotate"
 
 [node name="HardDrop" type="Button" parent="MarginContainer/VBoxContainer/ControlDeck/DeckContent/MobileControls/ActionControls" unique_id=9511537]
 custom_minimum_size = Vector2(56, 56)
 layout_mode = 2
-text = "DROP"
-
-[node name="Pause" type="Button" parent="MarginContainer/VBoxContainer/ControlDeck/DeckContent/MobileControls/ActionControls" unique_id=1001831720]
-custom_minimum_size = Vector2(56, 56)
-layout_mode = 2
-text = "PAUSE"
+texture_filter = 1
+icon = SubResource("AtlasTexture_drop")
+icon_alignment = 1
+vertical_icon_alignment = 1
+expand_icon = true
+theme_override_constants/icon_max_width = 52
+tooltip_text = "Drop"
 
 [node name="BattleOverlay" parent="." unique_id=1217654048 instance=ExtResource("2_overlay")]

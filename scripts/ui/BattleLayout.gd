@@ -33,3 +33,7 @@ func _apply_layout() -> void:
 	enemy_board.position = Vector2(board_left + scaled_width + board_gap, board_top)
 	player_board.scale = Vector2.ONE * board_scale
 	enemy_board.scale = Vector2.ONE * board_scale
+
+	var vs_emblem := get_parent().get_node_or_null("VsEmblem") as Sprite2D
+	if vs_emblem != null:
+		vs_emblem.position = Vector2(viewport_size.x * 0.5, board_top - 43.0 * board_scale)

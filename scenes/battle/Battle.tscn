@@ -16,6 +16,11 @@
 [ext_resource type="PackedScene" uid="uid://d1typle8cy3tt" path="res://scenes/ui/ActorSprite.tscn" id="14_sprite"]
 [ext_resource type="Script" path="res://scripts/ui/BattleLayout.gd" id="15_layout"]
 [ext_resource type="PackedScene" path="res://scenes/ui/ArcadeCabinetFrame.tscn" id="16_cabinet"]
+[ext_resource type="Texture2D" path="res://assets/ui/Pixel Sci-Fi HUD Sprite Atlas.png" id="17_hud_atlas"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vs"]
+atlas = ExtResource("17_hud_atlas")
+region = Rect2(663, 84, 211, 207)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_board_frame"]
 bg_color = Color(0.055, 0.082, 0.12, 1)
@@ -67,6 +72,13 @@ grow_vertical = 2
 [node name="BattleLayout" type="Node" parent="."]
 script = ExtResource("15_layout")
 
+[node name="VsEmblem" type="Sprite2D" parent="."]
+z_index = 5
+texture_filter = 1
+position = Vector2(270, 180)
+scale = Vector2(0.28, 0.28)
+texture = SubResource("AtlasTexture_vs")
+
 [node name="BattleManager" type="Node" parent="." unique_id=1540546550]
 script = ExtResource("2_qp3x8")
 player_character = ExtResource("9_player")
@@ -100,8 +112,8 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_board_frame")
 [node name="PieceView" parent="PlayerBoardContainer" unique_id=607664759 instance=ExtResource("8_pieceview")]
 
 [node name="ActorStatusPanel" parent="PlayerBoardContainer" unique_id=548224263 instance=ExtResource("13_status_panel")]
-offset_top = -72.0
-offset_bottom = 0.0
+offset_top = -82.0
+offset_bottom = -4.0
 accent_color = Color(0.12, 0.64, 0.78, 1)
 
 [node name="ActorSprite" parent="PlayerBoardContainer" unique_id=1448818569 instance=ExtResource("14_sprite")]
@@ -128,9 +140,10 @@ script = ExtResource("3_9l2t1")
 [node name="PieceView" parent="EnemyBoardContainer" unique_id=1107527921 instance=ExtResource("8_pieceview")]
 
 [node name="ActorStatusPanel" parent="EnemyBoardContainer" unique_id=1342704561 instance=ExtResource("13_status_panel")]
-offset_top = -72.0
-offset_bottom = 0.0
+offset_top = -82.0
+offset_bottom = -4.0
 accent_color = Color(0.78, 0.20, 0.42, 1)
+portrait_on_right = true
 
 [node name="ActorSprite" parent="EnemyBoardContainer" unique_id=752114079 instance=ExtResource("14_sprite")]
 position = Vector2(120, -105)
