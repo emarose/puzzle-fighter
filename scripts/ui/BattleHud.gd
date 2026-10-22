@@ -28,15 +28,16 @@ const ENERGY_ACCENT := Color(0.95, 0.68, 0.18)
 const PAUSE_ACCENT := Color(0.42, 0.58, 0.72)
 const HUD_ATLAS := preload("res://assets/ui/Pixel Sci-Fi HUD Sprite Atlas.png")
 const ARCADE_ATLAS := preload("res://assets/ui/Neon Pixel Arcade UI Atlas-1.png")
-const SKILL_PLATE_CYAN := Rect2(183, 621, 191, 71)
-const SKILL_PLATE_AMBER := Rect2(412, 621, 186, 70)
+const SKILL_PLATE_CYAN := Rect2(22, 68, 491, 70)
+const SKILL_PLATE_AMBER := Rect2(22, 141, 491, 71)
+const ENERGY_ICON_REGION := Rect2(686, 871, 142, 136)
 const SKILL_ICON_REGIONS := {
 	"burst": Rect2(525, 871, 142, 136),
 	"pulse": Rect2(686, 871, 142, 136),
 	"heal": Rect2(847, 871, 142, 136),
 }
-const PAUSE_PATH := "ControlDeck/DeckContent/DeckHeader/Pause"
-const PAUSE_BUTTON_SIZE := 32.0
+const PAUSE_PATH := "ActionControls/Pause"
+const PAUSE_BUTTON_SIZE := 44.0
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -155,10 +156,10 @@ func _build_skill_buttons() -> void:
 	for index in range(skill_definitions.size()):
 		var definition: SkillDefinition = skill_definitions[index]
 		var button := Button.new()
-		button.custom_minimum_size = Vector2(0, 64)
+		button.custom_minimum_size = Vector2(0, 44)
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.text = definition.name
-		button.set_meta("cost_text", "%d Energy" % definition.cost)
+		button.set_meta("cost_text", "%d" % definition.cost)
 		button.tooltip_text = definition.description
 		_style_skill_button(button, definition.id)
 		button.pressed.connect(_on_skill_button_pressed.bind(definition.id))
@@ -206,29 +207,44 @@ func _style_skill_button(button: Button, skill_id: String) -> void:
 	name_label.add_theme_font_size_override("font_size", 12)
 	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	labels.add_child(name_label)
+	var cost_row := HBoxContainer.new()
+	cost_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	cost_row.add_theme_constant_override("separation", 2)
+	labels.add_child(cost_row)
 	var cost_label := Label.new()
 	cost_label.text = button.get_meta("cost_text", "")
-	cost_label.add_theme_font_size_override("font_size", 10)
+	cost_label.add_theme_font_size_override("font_size", 11)
 	cost_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	labels.add_child(cost_label)
+	cost_row.add_child(cost_label)
+	var energy_atlas := AtlasTexture.new()
+	energy_atlas.atlas = ARCADE_ATLAS
+	energy_atlas.region = ENERGY_ICON_REGION
+	var energy_icon := TextureRect.new()
+	energy_icon.texture = energy_atlas
+	energy_icon.custom_minimum_size = Vector2(13, 13)
+	energy_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	energy_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	energy_icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	energy_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	cost_row.add_child(energy_icon)
 	button.text = ""
 	button.add_child(center)
 	button.set_meta("labels", [name_label, cost_label])
 
 func _make_skill_plate(region: Rect2) -> StyleBoxTexture:
 	var plate := AtlasTexture.new()
-	plate.atlas = HUD_ATLAS
+	plate.atlas = ARCADE_ATLAS
 	plate.region = region
 	var style := StyleBoxTexture.new()
 	style.texture = plate
-	style.texture_margin_left = 22.0
-	style.texture_margin_right = 22.0
+	style.texture_margin_left = 24.0
+	style.texture_margin_right = 24.0
 	style.texture_margin_top = 18.0
 	style.texture_margin_bottom = 18.0
 	style.content_margin_left = 12.0
 	style.content_margin_right = 12.0
-	style.content_margin_top = 4.0
-	style.content_margin_bottom = 4.0
+	style.content_margin_top = 2.0
+	style.content_margin_bottom = 2.0
 	return style
 
 func _skill_accent(index: int) -> Color:
@@ -242,9 +258,9 @@ func _skill_accent(index: int) -> Color:
 
 func _apply_control_dimensions() -> void:
 	var viewport_width: float = get_viewport().get_visible_rect().size.x
-	var control_size: float = clampf(viewport_width * 0.13, 56.0, 68.0)
-	var joystick_width: float = clampf(viewport_width * 0.22, 96.0, 124.0)
-	var joystick_height: float = clampf(viewport_width * 0.20, 96.0, 112.0)
+	var control_size: float = clampf(viewport_width * 0.17, 80.0, 96.0)
+	var joystick_width: float = clampf(viewport_width * 0.30, 140.0, 170.0)
+	var joystick_height: float = clampf(viewport_width * 0.28, 130.0, 150.0)
 	joystick.custom_minimum_size = Vector2(joystick_width, joystick_height)
 	for path: String in ["ActionControls/Rotate", "ActionControls/HardDrop", PAUSE_PATH]:
 		var button := _get_action_button(path)
@@ -260,8 +276,6 @@ func _apply_control_dimensions() -> void:
 			button.set_meta("arcade_art_feedback_connected", true)
 
 func _get_action_button(path: String) -> Button:
-	if path == PAUSE_PATH:
-		return get_node("MarginContainer/VBoxContainer/" + path) as Button
 	return mobile_controls.get_node(path) as Button
 
 func _on_action_button_hovered(button: Button) -> void:

@@ -3,14 +3,6 @@
 [ext_resource type="Script" uid="uid://cdeuljy7nlsv6" path="res://scripts/ui/ArcadeCabinetFrame.gd" id="1_frame"]
 [ext_resource type="Texture2D" uid="uid://c0cdg6svfod61" path="res://assets/ui/Neon Pixel Arcade UI Atlas-1.png" id="2_atlas"]
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_cyan_panel"]
-atlas = ExtResource("2_atlas")
-region = Rect2(22, 68, 491, 70)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_magenta_panel"]
-atlas = ExtResource("2_atlas")
-region = Rect2(22, 141, 491, 71)
-
 [node name="ArcadeCabinetFrame" type="Control" unique_id=1103878155]
 texture_filter = 1
 layout_mode = 3
@@ -21,5 +13,4 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_frame")
-cyan_panel_texture = SubResource("AtlasTexture_cyan_panel")
-magenta_panel_texture = SubResource("AtlasTexture_magenta_panel")
+atlas_texture = ExtResource("2_atlas")

@@ -5,7 +5,57 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/SpecialGemPanel.tscn" id="3_gems"]
 [ext_resource type="PackedScene" path="res://scenes/ui/SpecialGemToast.tscn" id="4_toast"]
 [ext_resource type="PackedScene" path="res://scenes/ui/ArcadeJoystick.tscn" id="5_joystick"]
-[ext_resource type="Texture2D" path="res://assets/ui/Neon Pixel Arcade UI Atlas-1.png" id="6_atlas"]
+[ext_resource type="Texture2D" uid="uid://c0cdg6svfod61" path="res://assets/ui/Neon Pixel Arcade UI Atlas-1.png" id="6_atlas"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_legend_panel"]
+content_margin_left = 8.0
+content_margin_top = 5.0
+content_margin_right = 8.0
+content_margin_bottom = 5.0
+bg_color = Color(0.035, 0.055, 0.078, 0.96)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.18, 0.28, 0.36, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gem_panel"]
+content_margin_left = 8.0
+content_margin_top = 6.0
+content_margin_right = 8.0
+content_margin_bottom = 6.0
+bg_color = Color(0.055, 0.082, 0.12, 0.96)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.16, 0.39, 0.49, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_control_deck"]
+content_margin_left = 10.0
+content_margin_top = 8.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
+bg_color = Color(0.035, 0.055, 0.078, 0.98)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.2, 0.31, 0.39, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 3
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_rotate"]
 atlas = ExtResource("6_atlas")
@@ -19,56 +69,6 @@ region = Rect2(653, 663, 118, 130)
 atlas = ExtResource("6_atlas")
 region = Rect2(772, 664, 118, 130)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gem_panel"]
-bg_color = Color(0.055, 0.082, 0.12, 0.96)
-border_color = Color(0.16, 0.39, 0.49, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-content_margin_left = 8.0
-content_margin_top = 6.0
-content_margin_right = 8.0
-content_margin_bottom = 6.0
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_legend_panel"]
-bg_color = Color(0.035, 0.055, 0.078, 0.96)
-border_color = Color(0.18, 0.28, 0.36, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-corner_radius_top_left = 5
-corner_radius_top_right = 5
-corner_radius_bottom_right = 5
-corner_radius_bottom_left = 5
-content_margin_left = 8.0
-content_margin_top = 5.0
-content_margin_right = 8.0
-content_margin_bottom = 5.0
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_control_deck"]
-bg_color = Color(0.035, 0.055, 0.078, 0.98)
-border_color = Color(0.20, 0.31, 0.39, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
-content_margin_left = 10.0
-content_margin_top = 8.0
-content_margin_right = 10.0
-content_margin_bottom = 8.0
-shadow_color = Color(0.0, 0.0, 0.0, 0.5)
-shadow_size = 3
-
 [node name="BattleHud" type="CanvasLayer" unique_id=290763512]
 script = ExtResource("1_3m3du")
 
@@ -79,21 +79,21 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-theme_override_constants/margin_left = 16
+theme_override_constants/margin_left = 20
 theme_override_constants/margin_top = 16
-theme_override_constants/margin_right = 16
-theme_override_constants/margin_bottom = 24
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 40
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=189264558]
 layout_mode = 2
 mouse_filter = 2
 
-[node name="EffectLegend" type="PanelContainer" parent="MarginContainer/VBoxContainer"]
+[node name="EffectLegend" type="PanelContainer" parent="MarginContainer/VBoxContainer" unique_id=1650916149]
 layout_mode = 2
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_legend_panel")
 
-[node name="Items" type="HFlowContainer" parent="MarginContainer/VBoxContainer/EffectLegend"]
+[node name="Items" type="HFlowContainer" parent="MarginContainer/VBoxContainer/EffectLegend" unique_id=1616846389]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/h_separation = 12
@@ -125,82 +125,67 @@ size_flags_vertical = 3
 mouse_filter = 2
 
 [node name="SkillButtons" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=1713829096]
-custom_minimum_size = Vector2(0, 64)
+custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 8
 
-[node name="ControlDeck" type="PanelContainer" parent="MarginContainer/VBoxContainer"]
-custom_minimum_size = Vector2(0, 144)
+[node name="ControlDeck" type="PanelContainer" parent="MarginContainer/VBoxContainer" unique_id=2117039842]
+custom_minimum_size = Vector2(0, 170)
 layout_mode = 2
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_control_deck")
 
-[node name="DeckContent" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ControlDeck"]
+[node name="DeckContent" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ControlDeck" unique_id=1380055805]
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="DeckHeader" type="HBoxContainer" parent="MarginContainer/VBoxContainer/ControlDeck/DeckContent"]
-layout_mode = 2
-mouse_filter = 2
-
-[node name="DeckLabel" type="Label" parent="MarginContainer/VBoxContainer/ControlDeck/DeckContent/DeckHeader"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.48, 0.64, 0.73, 1)
-theme_override_font_sizes/font_size = 10
-text = "ARCADE CONTROLS"
-horizontal_alignment = 1
-
-[node name="Pause" type="Button" parent="MarginContainer/VBoxContainer/ControlDeck/DeckContent/DeckHeader"]
-modulate = Color(1, 1, 1, 0.75)
-custom_minimum_size = Vector2(32, 32)
-layout_mode = 2
-size_flags_vertical = 4
-texture_filter = 1
-tooltip_text = "Pause"
-icon = SubResource("AtlasTexture_pause")
-icon_alignment = 1
-vertical_icon_alignment = 1
-expand_icon = true
-theme_override_constants/icon_max_width = 28
-
 [node name="MobileControls" type="HBoxContainer" parent="MarginContainer/VBoxContainer/ControlDeck/DeckContent" unique_id=782920892]
 layout_mode = 2
-mouse_filter = 2
 size_flags_vertical = 3
+mouse_filter = 2
 theme_override_constants/separation = 10
 
-[node name="MovementControls" parent="MarginContainer/VBoxContainer/ControlDeck/DeckContent/MobileControls" instance=ExtResource("5_joystick")]
+[node name="MovementControls" parent="MarginContainer/VBoxContainer/ControlDeck/DeckContent/MobileControls" unique_id=491173454 instance=ExtResource("5_joystick")]
 layout_mode = 2
 
 [node name="ActionControls" type="HBoxContainer" parent="MarginContainer/VBoxContainer/ControlDeck/DeckContent/MobileControls" unique_id=1964868956]
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 2
-alignment = 1
 theme_override_constants/separation = 10
+alignment = 1
 
 [node name="Rotate" type="Button" parent="MarginContainer/VBoxContainer/ControlDeck/DeckContent/MobileControls/ActionControls" unique_id=2138187789]
-custom_minimum_size = Vector2(56, 56)
-layout_mode = 2
 texture_filter = 1
+custom_minimum_size = Vector2(88, 88)
+layout_mode = 2
+tooltip_text = "Rotate"
+theme_override_constants/icon_max_width = 52
 icon = SubResource("AtlasTexture_rotate")
 icon_alignment = 1
-vertical_icon_alignment = 1
 expand_icon = true
-theme_override_constants/icon_max_width = 52
-tooltip_text = "Rotate"
 
 [node name="HardDrop" type="Button" parent="MarginContainer/VBoxContainer/ControlDeck/DeckContent/MobileControls/ActionControls" unique_id=9511537]
-custom_minimum_size = Vector2(56, 56)
-layout_mode = 2
 texture_filter = 1
+custom_minimum_size = Vector2(88, 88)
+layout_mode = 2
+tooltip_text = "Drop"
+theme_override_constants/icon_max_width = 52
 icon = SubResource("AtlasTexture_drop")
 icon_alignment = 1
-vertical_icon_alignment = 1
 expand_icon = true
-theme_override_constants/icon_max_width = 52
-tooltip_text = "Drop"
+
+[node name="Pause" type="Button" parent="MarginContainer/VBoxContainer/ControlDeck/DeckContent/MobileControls/ActionControls" unique_id=1996049403]
+modulate = Color(1, 1, 1, 0.85)
+texture_filter = 1
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+size_flags_vertical = 0
+tooltip_text = "Pause"
+theme_override_constants/icon_max_width = 40
+icon = SubResource("AtlasTexture_pause")
+icon_alignment = 1
+expand_icon = true
 
 [node name="BattleOverlay" parent="." unique_id=1217654048 instance=ExtResource("2_overlay")]
