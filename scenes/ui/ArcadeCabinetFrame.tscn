@@ -1,7 +1,7 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://dvu8h7je25wyb"]
 
-[ext_resource type="Script" path="res://scripts/ui/ArcadeCabinetFrame.gd" id="1_frame"]
-[ext_resource type="Texture2D" path="res://assets/ui/Neon Pixel Arcade UI Atlas-1.png" id="2_atlas"]
+[ext_resource type="Script" uid="uid://cdeuljy7nlsv6" path="res://scripts/ui/ArcadeCabinetFrame.gd" id="1_frame"]
+[ext_resource type="Texture2D" uid="uid://c0cdg6svfod61" path="res://assets/ui/Neon Pixel Arcade UI Atlas-1.png" id="2_atlas"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_cyan_panel"]
 atlas = ExtResource("2_atlas")
@@ -11,7 +11,8 @@ region = Rect2(22, 68, 491, 70)
 atlas = ExtResource("2_atlas")
 region = Rect2(22, 141, 491, 71)
 
-[node name="ArcadeCabinetFrame" type="Control"]
+[node name="ArcadeCabinetFrame" type="Control" unique_id=1103878155]
+texture_filter = 1
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -19,7 +20,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-texture_filter = 1
 script = ExtResource("1_frame")
 cyan_panel_texture = SubResource("AtlasTexture_cyan_panel")
 magenta_panel_texture = SubResource("AtlasTexture_magenta_panel")

@@ -32,8 +32,8 @@ const SKILL_PLATE_CYAN := Rect2(183, 621, 191, 71)
 const SKILL_PLATE_AMBER := Rect2(412, 621, 186, 70)
 const SKILL_ICON_REGIONS := {
 	"burst": Rect2(525, 871, 142, 136),
-	"heal": Rect2(686, 871, 142, 136),
-	"pulse": Rect2(847, 871, 142, 136),
+	"pulse": Rect2(686, 871, 142, 136),
+	"heal": Rect2(847, 871, 142, 136),
 }
 const PAUSE_PATH := "ControlDeck/DeckContent/DeckHeader/Pause"
 const PAUSE_BUTTON_SIZE := 32.0
@@ -155,10 +155,10 @@ func _build_skill_buttons() -> void:
 	for index in range(skill_definitions.size()):
 		var definition: SkillDefinition = skill_definitions[index]
 		var button := Button.new()
-		button.custom_minimum_size.y = 56
+		button.custom_minimum_size = Vector2(0, 64)
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		var shortcut: String = " [%d]" % (index + 1) if index < 3 else ""
-		button.text = "%s\n(%d)%s" % [definition.name, definition.cost, shortcut]
+		button.text = definition.name
+		button.set_meta("cost_text", "%d Energy" % definition.cost)
 		button.tooltip_text = definition.description
 		_style_skill_button(button, definition.id)
 		button.pressed.connect(_on_skill_button_pressed.bind(definition.id))
@@ -176,17 +176,44 @@ func _style_skill_button(button: Button, skill_id: String) -> void:
 	button.add_theme_color_override("font_color", Color(0.91, 0.95, 1.0))
 	button.add_theme_color_override("font_hover_color", Color.WHITE)
 	button.add_theme_color_override("font_pressed_color", Color(1.0, 0.9, 0.55))
-	button.add_theme_color_override("font_disabled_color", Color(0.5, 0.57, 0.64))
+	button.add_theme_color_override("font_disabled_color", Color(0.85, 0.92, 1.0))
 	button.add_theme_font_size_override("font_size", 12)
-	button.add_theme_constant_override("h_separation", 6)
-	button.add_theme_constant_override("icon_max_width", 30)
-	button.expand_icon = true
-	button.alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var row := HBoxContainer.new()
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_theme_constant_override("separation", 6)
+	center.add_child(row)
 	if SKILL_ICON_REGIONS.has(skill_id):
 		var icon := AtlasTexture.new()
 		icon.atlas = ARCADE_ATLAS
 		icon.region = SKILL_ICON_REGIONS[skill_id]
-		button.icon = icon
+		var icon_rect := TextureRect.new()
+		icon_rect.texture = icon
+		icon_rect.custom_minimum_size = Vector2(24, 24)
+		icon_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon_rect.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		icon_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_child(icon_rect)
+	var labels := VBoxContainer.new()
+	labels.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	labels.add_theme_constant_override("separation", 0)
+	row.add_child(labels)
+	var name_label := Label.new()
+	name_label.text = button.text
+	name_label.add_theme_font_size_override("font_size", 12)
+	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	labels.add_child(name_label)
+	var cost_label := Label.new()
+	cost_label.text = button.get_meta("cost_text", "")
+	cost_label.add_theme_font_size_override("font_size", 10)
+	cost_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	labels.add_child(cost_label)
+	button.text = ""
+	button.add_child(center)
+	button.set_meta("labels", [name_label, cost_label])
 
 func _make_skill_plate(region: Rect2) -> StyleBoxTexture:
 	var plate := AtlasTexture.new()
@@ -198,10 +225,10 @@ func _make_skill_plate(region: Rect2) -> StyleBoxTexture:
 	style.texture_margin_right = 22.0
 	style.texture_margin_top = 18.0
 	style.texture_margin_bottom = 18.0
-	style.content_margin_left = 20.0
-	style.content_margin_right = 20.0
-	style.content_margin_top = 6.0
-	style.content_margin_bottom = 6.0
+	style.content_margin_left = 12.0
+	style.content_margin_right = 12.0
+	style.content_margin_top = 4.0
+	style.content_margin_bottom = 4.0
 	return style
 
 func _skill_accent(index: int) -> Color:
@@ -508,5 +535,13 @@ func _update_skill_buttons() -> void:
 		return
 	for skill_id in skill_buttons:
 		var button: Button = skill_buttons[skill_id]
-		button.disabled = not battle_controller.can_use_skill(skill_id)
-		button.self_modulate = Color(0.55, 0.6, 0.7) if button.disabled else Color.WHITE
+		var ready: bool = battle_controller.can_use_skill(skill_id)
+		button.disabled = not ready
+		var plate_region: Rect2 = SKILL_PLATE_AMBER if ready else SKILL_PLATE_CYAN
+		button.add_theme_stylebox_override("normal", _make_skill_plate(plate_region))
+		button.add_theme_stylebox_override("hover", _make_skill_plate(plate_region))
+		button.add_theme_stylebox_override("disabled", _make_skill_plate(plate_region))
+		var text_color := Color(1.0, 0.9, 0.55) if ready else Color(0.91, 0.95, 1.0)
+		for label: Label in button.get_meta("labels", []):
+			label.add_theme_color_override("font_color", text_color)
+		button.self_modulate = Color(1.2, 1.2, 1.2) if ready else Color.WHITE
